@@ -7,8 +7,12 @@ locals {
     [for identity in module.service_identity : "serviceAccount:${identity.email}"],
     contains(var.services, "storage.googleapis.com") ? ["serviceAccount:${data.google_storage_project_service_account.account[0].email_address}"] : [],
     contains(var.services, "bigquery.googleapis.com") ? ["serviceAccount:${data.google_bigquery_default_service_account.account[0].email}"] : [],
-    contains(var.services, "compute.googleapis.com") ? ["serviceAccount:service-${var.project_number}@compute-system.iam.gserviceaccount.com"] : []
+    contains(var.services, "compute.googleapis.com") ? ["serviceAccount:service-${data.google_project.project.number}@compute-system.iam.gserviceaccount.com"] : []
   )
+}
+
+data "google_project" "project" {
+  project_id = var.project
 }
 
 module "service_identity" {
