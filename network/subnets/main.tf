@@ -14,7 +14,7 @@ resource "google_compute_subnetwork" "subnetwork" {
   ipv6_access_type           = lookup(each.value, "ipv6_access_type", null)
 
   dynamic "secondary_ip_range" {
-    for_each = contains(keys(var.secondary_ranges), each.value.subnet_name) == true ? var.secondary_ranges[each.value.subnet_name] : []
+    for_each = contains(keys(var.secondary_ranges), each.value.name) == true ? var.secondary_ranges[each.value.name] : []
 
     content {
       range_name    = secondary_ip_range.value.range_name
