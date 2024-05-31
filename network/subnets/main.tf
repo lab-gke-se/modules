@@ -2,23 +2,23 @@ resource "google_compute_subnetwork" "subnetwork" {
   for_each                   = var.subnets
   project                    = var.project
   network                    = var.network
-  name                       = each.value.name
-  description                = lookup(each.value, "description", null)
+  name                       = each.key
+  description                = try(each.value.description, null)
   ip_cidr_range              = each.value.ip_cidr_range
   region                     = each.value.region
-  private_ip_google_access   = lookup(each.value, "private_ip_google_access", "false")
-  private_ipv6_google_access = lookup(each.value, "private_ipv6_google_access", null)
-  purpose                    = lookup(each.value, "purpose", null)
-  role                       = lookup(each.value, "role", null)
-  stack_type                 = lookup(each.value, "stack_type", null)
-  ipv6_access_type           = lookup(each.value, "ipv6_access_type", null)
+  private_ip_google_access   = try(each.value.private_ip_google_access, "false")
+  private_ipv6_google_access = try(each.value.private_ipv6_google_access, null)
+  purpose                    = try(each.value.purpose, null)
+  role                       = try(each.value.role, null)
+  stack_type                 = try(each.value.stack_type, null)
+  ipv6_access_type           = try(each.value.ipv6_access_type, null)
 
   dynamic "secondary_ip_range" {
-    for_each = contains(keys(var.secondary_ranges), each.value.name) == true ? var.secondary_ranges[each.value.name] : []
+    for_each = try(each.value.secondary_ip_ranges, {})
 
     content {
-      range_name    = secondary_ip_range.value.range_name
-      ip_cidr_range = secondary_ip_range.value.ip_cidr_range
+      range_name    = secondary_ip_range.key
+      ip_cidr_range = secondary_ip_range.value
     }
   }
 
