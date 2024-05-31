@@ -9,14 +9,18 @@ variable "network" {
 }
 
 variable "subnets" {
-  description = "The subnets in the network"
-  type = map(object({
-    name                     = string
-    ip_cidr_range            = string
-    region                   = string
-    private_ip_google_access = optional(string)
-  }))
+  type = map(any)
 }
+
+# variable "subnets" {
+#   description = "The subnets in the network"
+#   type = map(object({
+#     name                     = string
+#     ip_cidr_range            = string
+#     region                   = string
+#     private_ip_google_access = optional(string)
+#   }))
+# }
 
 variable "secondary_ranges" {
   description = "Secondary ranges"
