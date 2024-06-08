@@ -120,6 +120,16 @@ variable "resource_labels" {
   default     = null
 }
 
+variable "logging_config" {
+  description = "The logging configuration for the cluster"
+  type = object({
+    componentConfig = object({
+      enableComponents = list(string)
+    })
+  })
+  default = null
+}
+
 variable "maintenance_policy" {
   description = "The maintenance policy for the cluster"
   type = object({
