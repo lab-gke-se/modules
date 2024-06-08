@@ -1,35 +1,60 @@
-resource "google_storage_bucket" "bucket" {
-  name                        = "${var.project}-${var.name}"
-  project                     = var.project
-  location                    = var.location
-  force_destroy               = true
-  uniform_bucket_level_access = true
-  public_access_prevention    = "enforced"
-  labels                      = var.labels
+resource "google_storage_bucket" "buckets" {
+  for_each = { for k, v in var.buckets : k => v if v.name != "" }
 
-  versioning {
-    enabled = var.versioning
-  }
+  name               = each.value.name
+  location           = each.value.location
+  storage_class      = each.value.storage_class
+  force_destroy      = each.value.force_destroy
+  uniform_bucket_level_access = each.value.uniform_bucket_level_access
 
-  encryption {
-    default_kms_key_name = var.kms_key_id
-  }
+  labels = each.value.labels
 
-  /*
-  dynamic "retention_policy" {
-    for_each = lookup(local.data_classifications, var.data_classification, null)
+  dynamic "lifecycle_rule" {
+    for_each = each.value.lifecycle_rule != null ? [each.value.lifecycle_rule] : []
     content {
-      is_locked        = true
-      retention_period = retention_policy.value
+      action {
+        type = lifecycle_rule.value.action.type
+        storage_class = lifecycle_rule.value.action.storage_class
+      }
+      condition {
+        age = lifecycle_rule.value.condition.age
+        created_before = lifecycle_rule.value.condition.created_before
+        with_state = lifecycle_rule.value.condition.with_state
+        matches_storage_class = lifecycle_rule.value.condition.matches_storage_class
+      }
     }
   }
-*/
+
+  dynamic "cors" {
+    for_each = each.value.cors != null ? [each.value.cors] : []
+    content {
+      origin          = cors.value.origin
+      method          = cors.value.method
+      response_header = cors.value.response_header
+      max_age_seconds = cors.value.max_age_seconds
+    }
+  }
+
+  dynamic "website" {
+    for_each = each.value.website != null ? [each.value.website] : []
+    content {
+      main_page_suffix = website.value.main_page_suffix
+      not_found_page   = website.value.not_found_page
+    }
+  }
 
   dynamic "logging" {
-    for_each = var.log_bucket == null ? [] : [var.log_bucket]
+    for_each = each.value.logging != null ? [each.value.logging] : []
     content {
-      log_bucket = var.log_bucket
+      log_bucket        = logging.value.log_bucket
+      log_object_prefix = logging.value.log_object_prefix
+    }
+  }
+
+  dynamic "versioning" {
+    for_each = each.value.versioning != null ? [each.value.versioning] : []
+    content {
+      enabled = versioning.value.enabled
     }
   }
 }
-

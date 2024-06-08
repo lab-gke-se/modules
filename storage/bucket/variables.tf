@@ -1,43 +1,45 @@
-variable "name" {
-  description = "The name of the storage bucket"
-  type        = string
-}
+variable "buckets" {
+  description = "A map of GCS bucket configurations"
+  type = map(object({
+    name                       = optional(string, "")
+    location                   = string
+    storage_class              = string
+    force_destroy              = bool
+    uniform_bucket_level_access = bool
+    labels                     = map(string)
 
-variable "project" {
-  description = "The project of the storage bucket"
-  type        = string
-}
+    lifecycle_rule = optional(object({
+      action = object({
+        type = string
+        storage_class = optional(string)
+      })
+      condition = object({
+        age = optional(number)
+        created_before = optional(string)
+        with_state = optional(string)
+        matches_storage_class = optional(list(string))
+      })
+    }))
 
-variable "location" {
-  description = "The location of the storage bucket"
-  type        = string
-}
+    cors = optional(object({
+      origin          = list(string)
+      method          = list(string)
+      response_header = list(string)
+      max_age_seconds = number
+    }))
 
-variable "data_classification" {
-  description = "The classification for the data"
-  type        = string
-}
+    website = optional(object({
+      main_page_suffix = string
+      not_found_page   = string
+    }))
 
-variable "kms_key_id" {
-  description = "KMS key for CMEK encryption"
-  type        = string
-}
+    logging = optional(object({
+      log_bucket        = string
+      log_object_prefix = string
+    }))
 
-variable "versioning" {
-  description = "Enable versioning"
-  type        = bool
-  default     = true
+    versioning = optional(object({
+      enabled = bool
+    }))
+  }))
 }
-
-variable "log_bucket" {
-  description = "Log bucket for logging"
-  type        = string
-  default     = null
-}
-
-variable "labels" {
-  description = "Labels for the bucket"
-  type        = map(string)
-  default     = null
-}
-
