@@ -124,9 +124,24 @@ variable "maintenance_policy" {
   description = "The maintenance policy for the cluster"
   type = object({
     window = object({
-      dailyMaintenanceWindow = object({
+      recurringWindow = optional(object({
+        recurrence = string
+        window = object({
+          startTime = string
+          endTime   = string
+        })
+      }))
+      dailyMaintenanceWindow = optional(object({
+        duration  = optional(string)
         startTime = string
-      })
+      }))
+      maintenanceExclusions = optional(map(object({
+        startTime = string
+        endTime   = string
+        maintenanceExclusionOptions : object({
+          scope = optional(string)
+        })
+      })))
     })
   })
   default = {
