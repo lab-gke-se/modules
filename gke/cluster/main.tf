@@ -1,3 +1,14 @@
+# TODO - cope with zonal clusters
+data "google_container_engine_versions" "region" {
+  location = var.location
+  project  = var.project
+}
+
+# TODO - cope with different release channels
+locals {
+  latest_version = data.google_container_engine_versions.region.release_channel_latest_version.REGULAR
+}
+
 resource "google_container_cluster" "primary" {
   provider = google-beta
 
@@ -55,7 +66,7 @@ resource "google_container_cluster" "primary" {
     }
   }
 
-  min_master_version = var.kubernetes_version
+  min_master_version = var.kubernetes_version == "latest" ? local.latest_version : var.kubernetes_version
 
   addons_config {
     http_load_balancing {
@@ -100,38 +111,39 @@ resource "google_container_cluster" "primary" {
   }
 
   maintenance_policy {
-    # dynamic "recurring_window" {
-    #   for_each = local.cluster_maintenance_window_is_recurring
-    #   content {
-    #     start_time = var.maintenance_start_time
-    #     end_time   = var.maintenance_end_time
-    #     recurrence = var.maintenance_recurrence
-    #   }
-    # }
+    dynamic "recurring_window" {
+      for_each = try([var.maintenance_policy.window.recurringWindow.recurrence], [])
 
-    daily_maintenance_window {
-      #   for_each = try([var.maintenance_policy.window.dailyMaintenanceWindow], [])
-      #   content {
-
-      start_time = var.maintenance_policy.window.dailyMaintenanceWindow.startTime
-      #   }
+      content {
+        start_time = var.maintenance_policy.window.recurringWindow.window.startTime
+        end_time   = var.maintenance_policy.window.recurringWindow.window.endTime
+        recurrence = var.maintenance_policy.window.recurringWindow.recurrence
+      }
     }
 
-    # dynamic "maintenance_exclusion" {
-    #   for_each = var.maintenance_exclusions
-    #   content {
-    #     exclusion_name = maintenance_exclusion.value.name
-    #     start_time     = maintenance_exclusion.value.start_time
-    #     end_time       = maintenance_exclusion.value.end_time
+    dynamic "daily_maintenance_window" {
+      for_each = try([var.maintenance_policy.window.dailyMaintenanceWindow.startTime], [])
 
-    #     dynamic "exclusion_options" {
-    #       for_each = maintenance_exclusion.value.exclusion_scope == null ? [] : [maintenance_exclusion.value.exclusion_scope]
-    #       content {
-    #         scope = exclusion_options.value
-    #       }
-    #     }
-    #   }
-    # }
+      content {
+        start_time = var.maintenance_policy.window.dailyMaintenanceWindow.startTime
+      }
+    }
+
+    dynamic "maintenance_exclusion" {
+      for_each = var.maintenance_policy.window.maintenanceExclusions == null ? {} : var.maintenance_policy.window.maintenanceExclusions
+      content {
+        exclusion_name = maintenance_exclusion.key
+        start_time     = maintenance_exclusion.value.startTime
+        end_time       = maintenance_exclusion.value.endTime
+
+        dynamic "exclusion_options" {
+          for_each = try(maintenance_exclusion.value.maintenanceExclusionOptions.scope, null) == null ? [] : [maintenance_exclusion.value.maintenanceExclusionOptions]
+          content {
+            scope = maintenance_exclusion.value.maintenanceExclusionOptions.scope
+          }
+        }
+      }
+    }
   }
 
 
