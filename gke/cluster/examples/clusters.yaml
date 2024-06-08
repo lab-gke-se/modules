@@ -1,0 +1,18 @@
+project_id: "my-project-id"
+region: "us-central1"
+gke_master_ipv4_cidr_block: "172.23.0.0/28"
+authorized_source_ranges:
+  - "192.168.1.0/24"
+  - "10.0.0.0/16"
+service_accounts:
+  - name: "gke-sa"
+    email: "gke-sa@your-project-id.iam.gserviceaccount.com"
+subnetworks:
+  - name: "subnet-1"
+    self_link: "projects/host-project/regions/us-central1/subnetworks/subnet-1"
+  - name: "subnet-2"
+    self_link: "projects/host-project/regions/us-central1/subnetworks/subnet-2"
+sector: ""
+app_id: ""
+env: "se"
+cluster_name: "mycluster"
