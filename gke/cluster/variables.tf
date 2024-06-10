@@ -53,7 +53,17 @@ variable "node_locations" {
 }
 
 variable "private_cluster_config" {
-
+  description = "The private configuration of the cluster"
+  type = object({
+    enablePrivateEndpoint     = optional(bool, false)
+    enablePrivateNodes        = optional(bool, false)
+    masterIpv4CidrBlock       = optional(string, null)
+    privateEndpointSubnetwork = optional(string, null)
+    masterGlobalAccessConfig = optional(object({
+      enabled = optional(bool, false)
+    }), null)
+  })
+  default = null
 }
 
 variable "release_channel" {
@@ -69,7 +79,14 @@ variable "addons_config" {
 }
 
 variable "cluster_autoscaling" {
-
+  description = "Autoscaling configuration for the cluster"
+  type = object({
+    autoprovisioningNodePoolDefaults = optional(object({
+      bootDiskKmsKey = optional(string, null)
+      serviceAccount = optional(string, null)
+    }))
+  })
+  default = null
 }
 
 variable "enable_vertical_pod_autoscaling" {

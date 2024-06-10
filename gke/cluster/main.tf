@@ -29,6 +29,8 @@ resource "google_container_cluster" "primary" {
   cluster_ipv4_cidr = var.cluster_ipv4_cidr
   networking_mode   = "VPC_NATIVE"
 
+  min_master_version = var.kubernetes_version == "latest" ? local.latest_version : var.kubernetes_version
+
   ip_allocation_policy {
     cluster_secondary_range_name  = var.ip_allocation_policy.clusterSecondaryRangeName
     services_secondary_range_name = var.ip_allocation_policy.servicesSecondaryRangeName
@@ -42,7 +44,7 @@ resource "google_container_cluster" "primary" {
   }
 
   dynamic "private_cluster_config" {
-    for_each = try([var.private_cluster_config], [])
+    for_each = var.private_cluster_config != null ? [var.private_cluster_config] : []
 
     content {
       enable_private_endpoint     = try(private_cluster_config.value.enablePrivateEndpoint, false)
@@ -66,8 +68,7 @@ resource "google_container_cluster" "primary" {
     }
   }
 
-  min_master_version = var.kubernetes_version == "latest" ? local.latest_version : var.kubernetes_version
-
+  # Needs completing, not right either
   addons_config {
     http_load_balancing {
       disabled = try(var.addons_config.httpLoadBalancing.disabled, false)
