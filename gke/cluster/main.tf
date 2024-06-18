@@ -90,13 +90,13 @@ resource "google_container_cluster" "primary" {
   }
 
   dynamic "master_authorized_networks_config" {
-    for_each = var.master_authorized_networks_config
+    for_each = try([var.master_authorized_networks_config.cidrBlocks], [])
     content {
       dynamic "cidr_blocks" {
-        for_each = master_authorized_networks_config.value.cidr_blocks
+        for_each = var.master_authorized_networks_config.cidrBlocks
         content {
-          cidr_block   = lookup(cidr_blocks.value, "cidr_block", "")
-          display_name = lookup(cidr_blocks.value, "display_name", "")
+          cidr_block   = try(cidr_blocks.value.cidrBlock, "")
+          display_name = try(cidr_blocks.value.displayName, "")
         }
       }
     }

@@ -97,8 +97,14 @@ variable "enable_vertical_pod_autoscaling" {
 
 variable "master_authorized_networks_config" {
   description = "The master authorized networks configuration"
-  type        = object({})
-  default     = null
+  type = object({
+    cidrBlocks = optional(list(object({
+      cidrBlock   = string
+      displayName = optional(string)
+    })))
+    enabled = optional(bool)
+  })
+  default = null
 }
 
 variable "database_encryption" {
