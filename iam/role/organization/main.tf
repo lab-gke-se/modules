@@ -1,5 +1,6 @@
 locals {
-  random = random_string.suffix.result
+  random      = random_string.suffix.result
+  permissions = yamldecode(file("${path.module}/../permissions.yaml"))
 }
 
 resource "random_string" "suffix" {
@@ -13,5 +14,6 @@ resource "google_organization_iam_custom_role" "role" {
   role_id     = "${var.role_id}.${local.random}"
   title       = var.title
   description = var.description
-  permissions = var.permissions
+  permissions = setsubtract(var.permissions, local.permissions.unsupported)
 }
+
