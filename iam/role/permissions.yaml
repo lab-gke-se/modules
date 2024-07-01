@@ -4,6 +4,17 @@ nonproject:
 - compute.firewallPolicies.copyRules	
 - compute.firewallPolicies.move
 - compute.firewallPolicies.removeAssociation
+- compute.securityPolicies.addAssociation
+- compute.securityPolicies.copyRules
+# - compute.securityPolicies.create
+# - compute.securityPolicies.createTagBinding
+# - compute.securityPolicies.delete
+# - compute.securityPolicies.deleteTagBinding
+# - compute.securityPolicies.getIamPolicy
+- compute.securityPolicies.removeAssociation
+# - compute.securityPolicies.setIamPolicy
+# - compute.securityPolicies.setLabels
+# - compute.securityPolicies.update
 unsupported:
 - appengine.runtimes.actAsAdmin	
 - bigquery.rowAccessPolicies.overrideTimeTravelRestrictions	
