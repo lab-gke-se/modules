@@ -1,43 +1,210 @@
-variable "name" {
-  description = "The name of the cluster"
-  type        = string
-}
-
+# Terraform variables
 variable "project" {
   description = "The project for the cluster"
   type        = string
 }
 
-variable "autopilot" {
-  description = "Enable autopilot"
+variable "deletion_protection" {
+  description = "Whether or not to allow Terraform to destroy the cluster"
   type        = bool
-  default     = true
+  default     = false
 }
 
-variable "network" {
-  description = "The network for the cluster"
+variable "description" {
+  description = "The description of the cluster"
   type        = string
+  default     = null
 }
 
-variable "subnetwork" {
-  description = "The subnetwork for the nodes"
+variable "timeouts" {
+  description = "Terraform timeout values"
+  type        = object({})
+  default     = null
+}
+
+# Kubernetes variables
+variable "addonsConfig" {
+  description = "The configuration for addons supported by GKE"
+  type = object({
+    dnsCacheConfig = optional(object({
+      enabled = optional(bool, null)
+    }), null)
+    gcePersistentDiskCsiDriverConfig = optional(object({
+      enabled = optional(bool, null)
+    }), null)
+    gcpFilestoreCsiDriverConfig = optional(object({
+      enabled = optional(bool, null)
+    }), null)
+    gcsFuseCsiDriverConfig = optional(object({
+      enabled = optional(bool, null)
+    }), null)
+    horizontalPodAutoscaling = optional(object({
+      disabled = optional(bool, null)
+    }), null)
+    httpLoadBalancing = optional(object({
+      disabled = optional(bool, null)
+    }), null)
+    kubernetesDashboard = optional(object({
+      enabled = optional(bool, null)
+    }), null)
+    networkPolicyConfig = optional(object({
+      disabled = optional(bool, null)
+    }), null)
+    statefulHaConfig = optional(object({
+      enabled = optional(bool, null)
+    }), null)
+    cloudrunConfig = optional(object({
+      disabled         = optional(bool, null)
+      loadBalancerType = optional(string, null)
+    }), null)
+    # Beta
+    # istioConfig = optional(object({
+    #   disabled = optional(bool, null)
+    #   auth     = optional(string, null)
+    # }), null)
+    gkeBackupAgentConfig = optional(object({
+      enabled = optional(bool, null)
+    }), null)
+    # Beta
+    # kalmConfig = optional(object({
+    #   enabled = optional(bool, null)
+    # }), null)
+    configConnectorConfig = optional(object({
+      enabled = optional(bool, null)
+    }), null)
+    rayOperatorConfig = optional(object({
+      enabled = optional(bool, null)
+      rayClusterLoggingConfig = optional(object({
+        enabled = optional(bool, null)
+      }), null)
+      rayClusterMonitoringConfig = optional(object({
+        enabled = optional(bool, null)
+      }), null)
+    }), null)
+    # kubernetesDashboard = optional(object({}), null) Deprecated
+  })
+  default = null
+}
+
+variable "autopilot" {
+  description = "Enable autopilot for this cluster, default in GKE is false"
+  type = object({
+    enabled = optional(bool, null)
+  })
+  default = null
+}
+
+variable "autoscaling" {
+  description = "Configuration of Node Auto-Provisioning with Cluster Autoscaler for this cluster"
+  type = object({
+    autoprovisioningNodePoolDefaults = optional(object({
+      bootDiskKmsKey = optional(string, null)
+      diskType       = optional(string, null)
+      diskSize       = optional(string, null)
+      imageType      = optional(string, null)
+      management = optional(object({
+        autoRepair  = optional(bool, null)
+        autoUpgrade = optional(bool, null)
+      }), null)
+      oauthScopes    = optional(list(string), null)
+      serviceAccount = optional(string, null)
+      upgradeSettings = optional(object({
+        maxSurge = optional(number, null)
+        strategy = optional(string, null)
+      }), null)
+    }), null)
+    autoscalingProfile         = optional(string, null)
+    enableNodeAutoProvisioning = optional(bool, null)
+    resourceLimits = optional(list(object({
+      resourceType = string
+      minimum      = optional(string, null)
+      maximum      = optional(string, null)
+    })), null)
+  })
+  default = null
+}
+
+variable "binaryAuthorization" {
+  description = "Configuration options for the Binary Authorization feature"
+  type        = object({})
+  default     = null
+}
+
+variable "clusterIpv4Cidr" {
+  description = "The IP address range of the Kubernetes pods in this cluster in CIDR notation"
   type        = string
+  default     = null
 }
 
-variable "ip_allocation_policy" {
+# createTime: '2024-06-03T18:07:48+00:00'
+
+variable "currentMasterVersion" {
+  description = "The current version of the master"
+  type        = string
+  default     = null
+}
+
+variable "currentNodeVersion" {
+  description = "The current version of the nodes"
+  type        = string
+  default     = null
+}
+
+variable "databaseEncryption" {
+  description = "Encyption settings for etcd"
+  type = object({
+    # currentState = optional(string, null)
+    state   = optional(string, null)
+    keyName = optional(string, null)
+  })
+  default = null
+}
+
+variable "defaultMaxPodsConstraint" {
+  description = ""
+  type = object({
+    maxPodsPerNode = optional(number, null)
+  })
+  default = null
+}
+
+# endpoint: 100.88.2.2
+# enterpriseConfig:
+#   clusterTier: STANDARD
+# etag: 64b88d66-b05c-418c-b485-58041ab7e38d
+# id: a527f01905f04ad18d02748b36036c676632306657644b55b7a794ae5ba55285
+# instanceGroupUrls:
+
+variable "initialClusterVersion" {
+  description = "The minimum version of the master"
+  type        = string
+  default     = null
+}
+
+variable "ipAllocationPolicy" {
   description = "The allocation policy for the ip ranges"
   type = object({
-    clusterSecondaryRangeName  = string
-    servicesSecondaryRangeName = string
-    stackType : string
-    useIpAliases : bool
-    clusterIpv4Cidr : optional(string)
-    clusterIpv4CidrBlock : optional(string)
-    podCidrOverprovisionConfig : optional(map(any), null)
-    servicesIpv4Cidr : optional(string)
-    servicesIpv4CidrBlock : optional(string)
+    clusterIpv4Cidr            = optional(string, null)
+    clusterIpv4CidrBlock       = optional(string, null)
+    clusterSecondaryRangeName  = optional(string, null)
+    podCidrOverprovisionConfig = optional(map(any), null)
+    servicesIpv4Cidr           = optional(string, null)
+    servicesIpv4CidrBlock      = optional(string, null)
+    servicesSecondaryRangeName = optional(string, null)
+    stackType                  = optional(string, null)
+    useIpAliases               = optional(bool, null)
+    additionalPodRangesConfig = optional(object({
+      podRangeNames = optional(list(string), null)
+      podRangeInfo = optional(list(object({
+        rangeName   = optional(string, null)
+        utilization = optional(number, null)
+      })), null)
+    }), null)
   })
 }
+
+# labelFingerprint: a9dc16a7
+# legacyAbac: {}
 
 variable "location" {
   description = "The location of the cluster for regional clusters"
@@ -45,14 +212,202 @@ variable "location" {
   default     = null
 }
 
-# TODO if null, use all available zones in the region?
-variable "node_locations" {
+variable "locations" {
   description = "The zones for the nodes or single zone for a zonal cluster"
   type        = list(string)
   default     = null
 }
 
-variable "private_cluster_config" {
+variable "loggingConfig" {
+  description = "Logging configuration for the cluster"
+  type = object({
+    componentConfig = optional(object({
+      enableComponents = optional(list(string), null)
+    }), null)
+  })
+  default = null
+}
+
+variable "loggingService" {
+  description = "The logging service that the cluster should write logs to"
+  type        = string
+  default     = null
+}
+
+variable "maintenancePolicy" {
+  description = "The maintenance policy to use for the cluster"
+  type = object({
+    window = optional(object({
+      recurringWindow = optional(object({
+        recurrence = optional(string, null)
+        window = optional(object({
+          startTime = optional(string, null)
+          endTime   = optional(string, null)
+        }), null)
+      }), null)
+      dailyMaintenanceWindow = optional(object({
+        duration  = optional(string, null)
+        startTime = optional(string, null)
+      }), null)
+      maintenanceExclusions = optional(map(object({
+        startTime = optional(string, null)
+        endTime   = optional(string, null)
+        maintenanceExclusionOptions = optional(object({
+          scope = optional(string, null)
+        }), null)
+      })), null)
+    }), null)
+  })
+  default = null
+}
+
+variable "masterAuth" {
+  description = "The authentication information for accessing the Kubernetes master"
+  type = object({
+    clientCertificateConfig = optional(object({
+      issueClientCertificate = optional(bool, null)
+    }), null)
+  })
+  default = null
+}
+
+variable "masterAuthorizedNetworksConfig" {
+  description = "The desired configuration options for master authorized networks"
+  type = object({
+    cidrBlocks = optional(list(object({
+      cidrBlock   = string
+      displayName = optional(string, null)
+    })))
+    enabled                     = optional(bool, null)
+    gcpPublicCidrsAccessEnabled = optional(bool, null)
+  })
+  default = null
+}
+
+variable "monitoringConfig" {
+  description = "Monitoring configuration for the cluster"
+  type = object({
+    advancedDatapathObservabilityConfig = optional(object({
+      enableMetrics = optional(bool, null)
+    }), null)
+    componentConfig = optional(object({
+      enableComponents = optional(list(string), null)
+    }), null)
+    managedPrometheusConfig = optional(object({
+      enabled = optional(bool, null)
+    }), null)
+  })
+  default = null
+}
+
+variable "monitoringService" {
+  description = "he monitoring service that the cluster should write metrics to"
+  type        = string
+  default     = null
+}
+
+variable "name" {
+  description = "The name of the cluster"
+  type        = string
+}
+
+variable "network" {
+  description = "The network for the cluster"
+  type        = string
+}
+
+variable "networkConfig" {
+  description = "The network configuration for the cluster"
+  type = object({
+    datapathProvider = optional(string, null)
+    defaultSnatStatus = optional(object({
+      disabled = optional(bool, null)
+    }), null)
+    dnsConfig = optional(object({
+      clusterDns       = optional(string, null)
+      clusterDnsDomain = optional(string, null)
+      clusterDnsScope  = optional(string, null)
+    }), null)
+    enableIntraNodeVisibility = optional(bool, null)
+    gatewayApiConfig = optional(object({
+      channel = optional(string, null)
+    }), null)
+    network = optional(string, null)
+    serviceExternalIpsConfig = optional(object({
+      enabled = optional(bool, null)
+    }), null)
+    subnetwork = optional(string, null)
+  })
+  default = null
+}
+
+variable "nodeConfig" {
+  description = "Parameters used in creating the default node pool"
+  type = object({
+    bootDiskKmsKey = optional(string, null)
+    diskSizeGb     = optional(number, null)
+    diskTye        = optional(string, null)
+    imageType      = optional(string, null)
+    machineType    = optional(string, null)
+    metadata       = optional(map(string), null)
+    oauthScopes    = optional(list(string), null)
+    reservationAffinity = optional(object({
+      consumeReservationType = optional(string, null)
+    }), null)
+    serviceAccount = optional(string, null)
+    shieldedInstanceConfig = optional(object({
+      enableIntegrityMonitoring = optional(bool, null)
+      enableSecureBoot          = optional(bool, null)
+    }), null)
+    taints = optional(list(object({
+      effect = optional(string, null)
+      key    = optional(string, null)
+      value  = optional(string, null)
+    })), null)
+    windowsNodeConfig = optional(object({}), null)
+    workloadMetadataConfig = optional(object({
+      mode = optional(string, null)
+    }), null)
+  })
+  default = null
+}
+
+variable "nodePoolDefaults" {
+  description = "Default NodePool settings for the entire cluster"
+  type = object({
+    nodeConfigDefaults = optional(object({
+      containerdConfig = optional(object({
+        privateRegistryAccessConfig = optional(object({
+          certificateAuthorityDomainConfig = optional(list(object({
+            fqdns = optional(list(string), null)
+            gcpSecretManagerCertificateConfig = optional(object({
+              secretURI = optional(string, null)
+            }), null)
+          })), null)
+        }), null)
+      }), null)
+      gcfsConfig = optional(object({
+        enabled = optional(bool, null)
+      }), null)
+      loggingConfig = optional(object({
+        variantConfig = optional(object({
+          variant = optional(string, null)
+        }), null)
+      }), null)
+    }), null)
+  })
+  default = null
+}
+
+variable "notificationConfig" {
+  description = "Configuration for the cluster upgrade notifications feature"
+  type = object({
+    pubsub = optional(object({}), null)
+  })
+  default = null
+}
+
+variable "privateClusterConfig" {
   description = "The private configuration of the cluster"
   type = object({
     enablePrivateEndpoint     = optional(bool, false)
@@ -66,129 +421,64 @@ variable "private_cluster_config" {
   default = null
 }
 
-variable "release_channel" {
+variable "releaseChannel" {
   description = "The release channel for the cluster"
-  type        = string
-  default     = "REGULAR"
-}
-
-variable "addons_config" {
-  description = "Specifies the addons configuration"
-  type        = object({})
-  default     = null
-}
-
-variable "cluster_autoscaling" {
-  description = "Autoscaling configuration for the cluster"
   type = object({
-    autoprovisioningNodePoolDefaults = optional(object({
-      bootDiskKmsKey = optional(string, null)
-      serviceAccount = optional(string, null)
-    }))
+    channel = optional(string, null)
   })
   default = null
 }
 
-variable "enable_vertical_pod_autoscaling" {
-  description = "Vertical Pod Autoscaling"
-  type        = bool
-  default     = true
-}
-
-variable "master_authorized_networks_config" {
-  description = "The master authorized networks configuration"
-  type = object({
-    cidrBlocks = optional(list(object({
-      cidrBlock   = string
-      displayName = optional(string)
-    })))
-    enabled = optional(bool)
-  })
-  default = null
-}
-
-variable "database_encryption" {
-  description = "The database encryption configuration"
-  type        = object({})
-  default     = null
-}
-
-variable "kubernetes_version" {
-  description = "The minimum master version"
-  type        = string
-  default     = null # Uses latest if null
-}
-
-variable "cluster_ipv4_cidr" {
-  description = "The cidr range for the control plane in private endpoint clusters"
-  type        = string
-  default     = null
-}
-
-variable "deletion_protection" {
-  description = "Prevents the cluster being deleted"
-  type        = bool
-  default     = false
-}
-
-variable "description" {
-  description = "The description of the cluster"
-  type        = string
-  default     = null
-}
-
-variable "resource_labels" {
-  description = "The resource labels for the cluster"
+variable "resourceLabels" {
+  description = "The GCE resource labels (a map of key/value pairs) to be applied to the cluster"
   type        = map(string)
   default     = null
 }
 
-variable "logging_config" {
-  description = "The logging configuration for the cluster"
+variable "securityPostureConfig" {
+  description = "Enable/Disable Security Posture API features for the cluster"
   type = object({
-    componentConfig = object({
-      enableComponents = list(string)
-    })
+    mode              = optional(string, null)
+    vulnerabilityMode = optional(string, null)
   })
   default = null
 }
 
-variable "maintenance_policy" {
-  description = "The maintenance policy for the cluster"
+# selfLink = output only
+# serviceIpvCidr = output only
+
+variable "shieldedNodes" {
+  description = "Enable Shielded Nodes features on all nodes in this cluster"
   type = object({
-    window = object({
-      recurringWindow = optional(object({
-        recurrence = string
-        window = object({
-          startTime = string
-          endTime   = string
-        })
-      }))
-      dailyMaintenanceWindow = optional(object({
-        duration  = optional(string)
-        startTime = string
-      }))
-      maintenanceExclusions = optional(map(object({
-        startTime = string
-        endTime   = string
-        maintenanceExclusionOptions : object({
-          scope = optional(string)
-        })
-      })))
-    })
+    enabled = optional(bool, null)
   })
-  default = {
-    window = {
-      dailyMaintenanceWindow = {
-        startTime = "05:00"
-      }
-    }
-  }
+  default = null
 }
 
-variable "timeouts" {
-  description = "Terraform timeout values"
-  type        = object({})
+# status = output only
+
+variable "subnetwork" {
+  description = "The subnetwork for the nodes"
+  type        = string
   default     = null
 }
+
+variable "verticalPodAutoscaling" {
+  description = "Enable vertical pod autoscaling"
+  type = object({
+    enabled = optional(bool, null)
+  })
+  default = null
+}
+
+variable "workloadIdentityConfig" {
+  description = "Workload Identity allows Kubernetes service accounts to act as a user-managed Google IAM Service Account"
+  type = object({
+    workloadPool = optional(string, null)
+  })
+  default = null
+}
+
+# zone = output only
+
 
