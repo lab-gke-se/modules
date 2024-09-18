@@ -5,6 +5,9 @@ resource "google_container_cluster" "primary" {
   description         = var.description
   project             = var.project
   deletion_protection = var.deletion_protection
+  //  remove_default_node_pool = coalesce(try(var.autopilot.enabled, null), false) ? null : var.remove_default_node_pool
+  //  initial_node_count       = coalesce(try(var.autopilot.enabled, null), false) ? null : var.initial_node_count
+  initial_node_count = 1
 
   dynamic "addons_config" {
     for_each = try(var.addonsConfig, null) != null ? [var.addonsConfig] : []
@@ -25,45 +28,45 @@ resource "google_container_cluster" "primary" {
         }
       }
       dynamic "dns_cache_config" {
-        for_each = !try(var.autopilot.enabled, false) && try(addons_config.value.dnsCacheConfig, null) != null ? [addons_config.value.dnsCacheConfig] : []
+        for_each = !coalesce(try(var.autopilot.enabled, null), false) && try(addons_config.value.dnsCacheConfig.enabled, null) != null ? [addons_config.value.dnsCacheConfig] : []
         content {
           enabled = try(dns_cache_config.value.enabled, null)
         }
       }
       dynamic "gce_persistent_disk_csi_driver_config" {
-        for_each = try(addons_config.value.gcePersistentDiskCsiDriverConfig, null) != null ? [addons_config.value.gcePersistentDiskCsiDriverConfig] : []
+        for_each = try(addons_config.value.gcePersistentDiskCsiDriverConfig.enabled, null) != null ? [addons_config.value.gcePersistentDiskCsiDriverConfig] : []
         content {
           enabled = try(gce_persistent_disk_csi_driver_config.value.enabled, null)
         }
       }
       dynamic "gcp_filestore_csi_driver_config" {
-        for_each = !try(var.autopilot.enabled, false) && try(addons_config.value.gcpFilestoreCsiDriverConfig, null) != null ? [addons_config.value.gcpFilestoreCsiDriverConfig] : []
+        for_each = !coalesce(try(var.autopilot.enabled, null), false) && try(addons_config.value.gcpFilestoreCsiDriverConfig.enabled, null) != null ? [addons_config.value.gcpFilestoreCsiDriverConfig] : []
 
         content {
           enabled = gcp_filestore_csi_driver_config.value.enabled
         }
       }
       dynamic "gcs_fuse_csi_driver_config" {
-        for_each = try(addons_config.value.gcsFuseCsiDriverConfig, null) != null ? [addons_config.value.gcsFuseCsiDriverConfig] : []
+        for_each = try(addons_config.value.gcsFuseCsiDriverConfig.enabled, null) != null ? [addons_config.value.gcsFuseCsiDriverConfig] : []
         content {
           enabled = try(gcs_fuse_csi_driver_config.value.enabled, null)
         }
       }
       dynamic "network_policy_config" {
-        for_each = !try(var.autopilot.enabled, false) && try(addons_config.value.networkPolicyConfig, null) != null ? [addons_config.value.networkPolicyConfig] : []
+        for_each = !coalesce(try(var.autopilot.enabled, null), false) && try(addons_config.value.networkPolicyConfig.disabled, null) != null ? [addons_config.value.networkPolicyConfig] : []
         content {
           disabled = try(network_policy_config.value.disabled, null)
         }
       }
       dynamic "stateful_ha_config" {
-        for_each = try(var.autopilot.enabled, false) ? [] : [addons_config.value.statefulHaConfig]
+        for_each = !coalesce(try(var.autopilot.enabled, null), false) && try(addons_config.value.statefulHaConfig.enabled, null) != null ? [addons_config.value.statefulHaConfig] : []
 
         content {
-          enabled = try(stateful_ga_config.value.enabled, null)
+          enabled = try(stateful_ha_config.value.enabled, null)
         }
       }
       dynamic "cloudrun_config" {
-        for_each = try(addons_config.value.cloudrunConfig, null) != null ? [addons_config.value.cloudrunConfig] : []
+        for_each = try(addons_config.value.cloudrunConfig.disabled, null) != null ? [addons_config.value.cloudrunConfig] : []
 
         content {
           disabled           = try(cloudrun_config.value.disabled, null)
@@ -76,7 +79,7 @@ resource "google_container_cluster" "primary" {
       #   auth     = try(addons_config.value.auth, null)
       # }
       dynamic "gke_backup_agent_config" {
-        for_each = try(addons_config.value.gkeBackupAgentConfig, null) != null ? [addons_config.value.gkeBackupAgentConfig] : []
+        for_each = try(addons_config.value.gkeBackupAgentConfig.enabled, null) != null ? [addons_config.value.gkeBackupAgentConfig] : []
 
         content {
           enabled = try(gke_backup_agent_config.value.enabled, null)
@@ -84,14 +87,14 @@ resource "google_container_cluster" "primary" {
       }
       # Beta?
       dynamic "kalm_config" {
-        for_each = try(addons_config.value.kalm_config, null) != null ? [addons_config.value.kalm_config] : []
+        for_each = try(addons_config.value.kalm_config.enabled, null) != null ? [addons_config.value.kalm_config] : []
 
         content {
           enabled = try(kalm_config.value.enabled, null)
         }
       }
       dynamic "config_connector_config" {
-        for_each = try(addons_config.value.configConnectorConfig, null) != null ? [addons_config.value.configConnectorConfig] : []
+        for_each = try(addons_config.value.configConnectorConfig.enabled, null) != null ? [addons_config.value.configConnectorConfig] : []
         content {
           enabled = try(config_connector_config.value.enabled, null)
         }
@@ -149,7 +152,7 @@ resource "google_container_cluster" "primary" {
       autoscaling_profile = try(cluster_autoscaling.value.autoscalingProfile, null)
       enabled             = try(cluster_autoscaling.value.enableNodeAutoProvisioning, null)
       dynamic "resource_limits" {
-        for_each = !try(var.autopilot.enabled, false) && try(cluster_autoscaling.value.resourceLimits, null) != null ? [cluster_autoscaling.value.resourceLimits] : []
+        for_each = !coalesce(try(var.autopilot.enabled, null), false) && try(cluster_autoscaling.value.resourceLimits, null) != null ? cluster_autoscaling.value.resourceLimits : []
 
         content {
           resource_type = try(resource_limits.value.resourceType, null)
@@ -181,6 +184,14 @@ resource "google_container_cluster" "primary" {
   }
 
   default_max_pods_per_node = try(to_number(var.defaultMaxPodsConstraint), null)
+
+  dynamic "fleet" {
+    for_each = try(var.fleet, null) != null ? [var.fleet] : []
+
+    content {
+      project = try(var.fleet.project, null)
+    }
+  }
 
   dynamic "ip_allocation_policy" {
     for_each = try(var.ipAllocationPolicy, null) != null ? [var.ipAllocationPolicy] : []
@@ -216,7 +227,7 @@ resource "google_container_cluster" "primary" {
     }
   }
 
-  logging_service = try(var.loggingService, null)
+  # logging_service = try(var.loggingService, null)
 
   dynamic "maintenance_policy" {
     for_each = try(var.maintenancePolicy, null) != null ? [var.maintenancePolicy] : []
@@ -296,7 +307,7 @@ resource "google_container_cluster" "primary" {
     }
   }
 
-  monitoring_service = try(var.monitoringService, null)
+  # monitoring_service = try(var.monitoringService, null)
 
   network         = try(var.network, null)
   networking_mode = "VPC_NATIVE"
@@ -321,7 +332,7 @@ resource "google_container_cluster" "primary" {
   }
 
   datapath_provider           = try(var.networkConfig.datapathProvider, null)
-  enable_intranode_visibility = !try(var.autopilot.enabled, false) ? try(var.networkConfig.enableIntraNodeVisibility, null) : null
+  enable_intranode_visibility = !coalesce(try(var.autopilot.enabled, null), false) ? try(var.networkConfig.enableIntraNodeVisibility, null) : null
 
   dynamic "gateway_api_config" {
     for_each = try(var.networkConfig.gatewayApiConfig, null) != null ? [var.networkConfig.gatewayApiConfig] : []
@@ -381,6 +392,14 @@ resource "google_container_cluster" "primary" {
         }
       }
 
+      dynamic "gvnic" {
+        for_each = try(node_config.value.gvnic, null) != null ? [node_config.value.gvnic] : []
+
+        content {
+          enabled = try(node_config.value.gvnic.enabled, null)
+        }
+      }
+
       # dynamic "windows_node_config" {
       #   for_each = try(node_config.value.windowsNodeConfig, null) != null ? [node_config.value.windowsNodeConfig] : []
 
@@ -429,9 +448,10 @@ resource "google_container_cluster" "primary" {
               }
             }
           }
+          # insecure_kubelet_readonly_port_enabled = try(node_pool_defaults.value.insecureKubeletReadonlyPortEnabled, null)
           logging_variant = try(node_pool_defaults.value.nodeConfigDefaults.loggingConfig.variantConfig.variant, null)
           dynamic "gcfs_config" {
-            for_each = try(node_config_defaults.value.gcfsConfig, null) != null ? [node_config_defaults.value.gcfsConfig] : []
+            for_each = try(node_config_defaults.value.gcfsConfig.enabled, null) != null ? [node_config_defaults.value.gcfsConfig] : []
 
             content {
               enabled = try(node_config_defaults.value.gcfsConfig.enabled, null)
@@ -491,12 +511,12 @@ resource "google_container_cluster" "primary" {
     }
   }
 
-  enable_shielded_nodes = !try(var.autopilot.enabled, false) ? try(var.shieldedNodes.enabled, null) : null
+  enable_shielded_nodes = !coalesce(try(var.autopilot.enabled, null), false) ? try(var.shieldedNodes.enabled, null) : null
 
   subnetwork = try(var.subnetwork)
 
   dynamic "vertical_pod_autoscaling" {
-    for_each = try(var.verticalPodAutoscaling, null) != null ? [var.verticalPodAutoscaling] : []
+    for_each = try(var.verticalPodAutoscaling.enabled, null) != null ? [var.verticalPodAutoscaling] : []
 
     content {
       enabled = try(vertical_pod_autoscaling.value.enabled, null)
