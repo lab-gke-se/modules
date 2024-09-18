@@ -22,6 +22,18 @@ variable "timeouts" {
   default     = null
 }
 
+variable "remove_default_node_pool" {
+  description = "Remove default nodes?"
+  type        = bool
+  default     = true
+}
+
+variable "initial_node_count" {
+  description = "Initial Node Count"
+  type        = number
+  default     = 1
+}
+
 # Kubernetes variables
 variable "addonsConfig" {
   description = "The configuration for addons supported by GKE"
@@ -166,6 +178,14 @@ variable "defaultMaxPodsConstraint" {
     maxPodsPerNode = optional(number, null)
   })
   default = null
+}
+
+variable "fleet" {
+  description = "fleet"
+  type = object({
+    membership = optional(string, null)
+    project    = optional(string, null)
+  })
 }
 
 # endpoint: 100.88.2.2
@@ -364,6 +384,9 @@ variable "nodeConfig" {
       key    = optional(string, null)
       value  = optional(string, null)
     })), null)
+    gvnic = optional(object({
+      enabled = optional(bool, null)
+    }), null)
     windowsNodeConfig = optional(object({}), null)
     workloadMetadataConfig = optional(object({
       mode = optional(string, null)
@@ -393,6 +416,9 @@ variable "nodePoolDefaults" {
         variantConfig = optional(object({
           variant = optional(string, null)
         }), null)
+      }), null)
+      nodeKubeletConfig = optional(object({
+        insecureKubeletReadonlyPortEnabled = optional(bool, null)
       }), null)
     }), null)
   })
