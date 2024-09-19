@@ -1,13 +1,12 @@
 resource "google_container_cluster" "primary" {
-  provider = google-beta
+  provider = google
 
-  name                = var.name
-  description         = var.description
   project             = var.project
   deletion_protection = var.deletion_protection
   //  remove_default_node_pool = coalesce(try(var.autopilot.enabled, null), false) ? null : var.remove_default_node_pool
-  //  initial_node_count       = coalesce(try(var.autopilot.enabled, null), false) ? null : var.initial_node_count
-  initial_node_count = 1
+
+  name        = var.name
+  description = try(var.description, null)
 
   dynamic "addons_config" {
     for_each = try(var.addonsConfig, null) != null ? [var.addonsConfig] : []
@@ -85,14 +84,14 @@ resource "google_container_cluster" "primary" {
           enabled = try(gke_backup_agent_config.value.enabled, null)
         }
       }
-      # Beta?
-      dynamic "kalm_config" {
-        for_each = try(addons_config.value.kalm_config.enabled, null) != null ? [addons_config.value.kalm_config] : []
+      # Beta
+      # dynamic "kalm_config" {
+      #   for_each = try(addons_config.value.kalm_config.enabled, null) != null ? [addons_config.value.kalm_config] : []
 
-        content {
-          enabled = try(kalm_config.value.enabled, null)
-        }
-      }
+      #   content {
+      #     enabled = try(kalm_config.value.enabled, null)
+      #   }
+      # }
       dynamic "config_connector_config" {
         for_each = try(addons_config.value.configConnectorConfig.enabled, null) != null ? [addons_config.value.configConnectorConfig] : []
         content {
@@ -113,6 +112,7 @@ resource "google_container_cluster" "primary" {
   }
 
   enable_autopilot = try(var.autopilot.enabled, null)
+  allow_net_admin  = try(var.autopilot.workloadPolicyConfig.allow_net_admin, null)
 
   dynamic "cluster_autoscaling" {
     for_each = try(var.autoscaling, null) != null ? [var.autoscaling] : []
@@ -192,6 +192,8 @@ resource "google_container_cluster" "primary" {
       project = try(var.fleet.project, null)
     }
   }
+
+  initial_node_count = var.initialNodeCount
 
   dynamic "ip_allocation_policy" {
     for_each = try(var.ipAllocationPolicy, null) != null ? [var.ipAllocationPolicy] : []
@@ -450,13 +452,13 @@ resource "google_container_cluster" "primary" {
           }
           # insecure_kubelet_readonly_port_enabled = try(node_pool_defaults.value.insecureKubeletReadonlyPortEnabled, null)
           logging_variant = try(node_pool_defaults.value.nodeConfigDefaults.loggingConfig.variantConfig.variant, null)
-          dynamic "gcfs_config" {
-            for_each = try(node_config_defaults.value.gcfsConfig.enabled, null) != null ? [node_config_defaults.value.gcfsConfig] : []
+          # dynamic "gcfs_config" {
+          #   for_each = try(node_config_defaults.value.gcfsConfig.enabled, null) != null ? [node_config_defaults.value.gcfsConfig] : []
 
-            content {
-              enabled = try(node_config_defaults.value.gcfsConfig.enabled, null)
-            }
-          }
+          #   content {
+          #     enabled = try(node_config_defaults.value.gcfsConfig.enabled, null)
+          #   }
+          # }
         }
       }
     }
@@ -565,7 +567,6 @@ resource "google_container_cluster" "primary" {
   }
 
 
-  allow_net_admin = var.allow_net_admin
 
   protect_config {
     workload_config {
