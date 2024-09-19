@@ -3,16 +3,18 @@
 ## Usage
 
 ```HCL
-cluster_files = fileset("${path.module}/config/clusters", "*.yaml")
+cluster_files   = fileset("${path.module}/config/clusters", "*.yaml")
 cluster_configs = {
   for filename in local.cluster_files : replace(filename, ".yaml", "") => yamldecode(templatefile("${path.module}/config/clusters/${filename}", local.substitutions))
 }
 
 module "cluster" {
-  source = "gke/cluster"
+  source   = "gke/cluster"
   for_each = local.cluster_configs
 
-  name = each.value.name
+  project      = var.project
+  name         = each.value.name
+  addonConfigs = try(each.value.addonConfigs, null)
 }
 ```
 
