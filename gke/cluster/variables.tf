@@ -465,7 +465,7 @@ variable "masterAuthorizedNetworksConfig" {
 variable "meshCertificates" {
   description = "Configuration for issuance of mTLS keys and certificates to Kubernetes pods."
   type = object({
-    nameenableCertificates = optional(bool, null)
+    enableCertificates = optional(bool, null)
   })
   default = null
 }
@@ -548,6 +548,7 @@ variable "networkPolicy" {
   default = null
 }
 
+# This should be kept synced with config in node_pool
 variable "nodeConfig" {
   description = "Parameters that describe the nodes in a cluster"
   type = object({
@@ -718,7 +719,7 @@ variable "nodePoolDefaults" {
           certificateAuthorityDomainConfig = optional(list(object({
             fqdns = optional(list(string), null)
             gcpSecretManagerCertificateConfig = optional(object({
-              secretURI = optional(string, null)
+              secretUri = optional(string, null)
             }), null)
           })), null)
         }), null)
