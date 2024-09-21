@@ -252,7 +252,7 @@ resource "google_container_node_pool" "node_pool" {
     content {
       create_pod_range     = try(network_config.value.createPodRange, null)
       enable_private_nodes = try(network_config.value.enablePrivateNodes, null)
-      pod_ipv4_cidr_block  = try(network_config.value.createPodRange, false) ? try(network_config.value.podIpv4CidrBlock, null) : null
+      pod_ipv4_cidr_block  = coalesce(try(network_config.value.createPodRange, null), false) ? try(network_config.value.podIpv4CidrBlock, null) : null
       pod_range            = try(network_config.value.podRange, null)
 
       dynamic "additional_node_network_configs" {
