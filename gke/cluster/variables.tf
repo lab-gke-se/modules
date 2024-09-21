@@ -13,7 +13,7 @@ variable "deletion_protection" {
 variable "remove_default_node_pool" {
   description = "Remove default nodes?"
   type        = bool
-  default     = true
+  default     = null
 }
 
 variable "timeouts" {
@@ -99,7 +99,7 @@ variable "autopilot" {
 variable "autoscaling" {
   description = "Configuration of Node Auto-Provisioning with Cluster Autoscaler for this cluster"
   type = object({
-    enableNodeAutoProvisioning = optional(bool, null)
+    enableNodeAutoprovisioning = optional(bool, null)
     resourceLimits = optional(list(object({
       resourceType = string
       minimum      = optional(string, null)
@@ -211,7 +211,6 @@ variable "conditions" {
   default = null
 }
 
-
 variable "databaseEncryption" {
   description = "Encyption settings for etcd"
   type = object({
@@ -269,7 +268,7 @@ variable "endpoint" {
 }
 
 variable "enterpriseConfig" {
-  description = "EnterpriseConfig is the cluster enterprise configuration."
+  description = "EnterpriseConfig is the cluster enterprise configuration." # Output only?
   type = object({
     clusterTier = optional(string, null)
   })

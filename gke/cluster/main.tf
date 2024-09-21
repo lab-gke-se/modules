@@ -4,6 +4,11 @@ resource "google_container_cluster" "primary" {
   project                  = var.project
   deletion_protection      = var.deletion_protection
   remove_default_node_pool = coalesce(try(var.autopilot.enabled, null), false) ? null : var.remove_default_node_pool
+  timeouts {
+    create = try(var.timeouts.create, "45m")
+    update = try(var.timeouts.update, "45m")
+    delete = try(var.timeouts.delete, "45m")
+  }
 
   dynamic "addons_config" {
     for_each = try(var.addonsConfig, null) != null ? [var.addonsConfig] : []
@@ -127,7 +132,7 @@ resource "google_container_cluster" "primary" {
     for_each = try(var.autoscaling, null) != null ? [var.autoscaling] : []
 
     content {
-      enabled                     = try(cluster_autoscaling.value.enableNodeAutoProvisioning, null)
+      enabled                     = coalesce(try(var.autopilot.enabled, null), false) ? null : try(cluster_autoscaling.value.enableNodeAutoprovisioning, null)
       auto_provisioning_locations = cluster_autoscaling.value.autoprovisioningLocations
       autoscaling_profile         = try(cluster_autoscaling.value.autoscalingProfile, null)
 
@@ -277,6 +282,7 @@ resource "google_container_cluster" "primary" {
     }
   }
 
+  # initial_node_count = coalesce(try(var.autopilot.enabled, null), false) ? null : var.initialNodeCount
   initial_node_count = var.initialNodeCount
 
   dynamic "ip_allocation_policy" {
@@ -917,11 +923,5 @@ resource "google_container_cluster" "primary" {
     content {
       workload_pool = try(workload_identity_config.value.workloadPool, null)
     }
-  }
-
-  timeouts {
-    create = try(var.timeouts.create, "45m")
-    update = try(var.timeouts.update, "45m")
-    delete = try(var.timeouts.delete, "45m")
   }
 }
