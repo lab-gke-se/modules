@@ -338,7 +338,7 @@ resource "google_container_cluster" "primary" {
     }
   }
 
-  logging_service = try(var.loggingService, null)
+  logging_service = try(var.loggingConfig, null) != null ? null : try(var.loggingService, null)
 
   dynamic "maintenance_policy" {
     for_each = try(var.maintenancePolicy, null) != null ? [var.maintenancePolicy] : []
@@ -440,7 +440,7 @@ resource "google_container_cluster" "primary" {
     }
   }
 
-  monitoring_service = try(var.monitoringService, null)
+  monitoring_service = try(var.monitoringConfig, null) != null ? null : try(var.monitoringService, null)
 
   name            = var.name
   network         = try(var.network, null)
