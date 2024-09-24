@@ -3,27 +3,10 @@ variable "project" {
   type        = string
 }
 
-variable "name" {
-  description = "The name of the network"
-  type        = string
-}
-
-variable "description" {
-  description = "The description of the network"
-  type        = string
-  default     = null
-}
-
 variable "shared_vpc_host" {
-  description = "Shared vpc host project"
+  description = "Whether this is a shared vpc host"
   type        = bool
   default     = true
-}
-
-variable "routing_mode" {
-  description = "The network routing mode"
-  type        = string
-  default     = "GLOBAL"
 }
 
 variable "delete_default_routes" {
@@ -32,27 +15,92 @@ variable "delete_default_routes" {
   default     = true
 }
 
-variable "mtu" {
-  description = "The network MTU"
-  type        = number
-  default     = 0
+variable "name" {
+  description = "The name of the vpc"
+  type        = string
 }
 
-variable "ipv6_internal_enable" {
-  description = "Enabled Internal IPv6"
-  type        = bool
-  default     = false
-}
-
-variable "ipv6_internal_range" {
-  description = "IPv6 range"
+variable "description" {
+  description = "The description of the vpc"
   type        = string
   default     = null
 }
 
-variable "network_firewall_policy_enforcement_order" {
-  description = "The order to evaluate firewall policies and rules"
-  type        = string
-  default     = "AFTER_CLASSIC_FIREWALL"
+# variable "IPv4Range" {
+#   description = "The IPv4 range for the vpc"
+#   type        = string
+#   default     = null
+# }
+
+# variable "gatewayIPv4" {
+#   description = "The IPv4 gateway for the vpc"
+#   type        = string
+#   default     = null
+# }
+
+variable "autoCreateSubnetworks" {
+  description = "Auto create the subnets in all regions"
+  type        = bool
+  default     = false
 }
 
+# variable "subnetworks" {
+#   description = "The subnetworks in the vpc - output only"
+#   type        = list(string)
+#   default     = false
+# }
+
+# variable "peerings" {
+#   description = "The peerings to the vpc with other vpcs"
+#   type = object({
+#     name                           = optional(string, null)
+#     network                        = optional(string, null)
+#     autoCreateRoutes               = optional(bool, null)
+#     exportCustomRoutes             = optional(bool, null)
+#     importCustomRoutes             = optional(bool, null)
+#     exchangeSubnetRoutes           = optional(bool, null)
+#     exportSubnetRoutesWithPublicIp = optional(bool, null)
+#     importSubnetRoutesWithPublicIp = optional(bool, null)
+#     peerMtu                        = optional(number, null)
+#     stackType                      = optional(string, null)
+#   })
+#   default = null
+# }
+
+variable "routingConfig" {
+  description = "The routing configuration of the vpc"
+  type = object({
+    routingMode = optional(string, null)
+  })
+  default = null
+}
+
+variable "mtu" {
+  description = "The maximum transmission unit for the vpc"
+  type        = number
+  default     = null
+}
+
+# variable "firewallPolicy" {
+#   description = "The firewall policy for the vpc"
+#   type        = string
+#   default     = null
+# }
+
+variable "networkFirewallPolicyEnforcementOrder" {
+  description = "The network firewall policy enforcement order for the vpc"
+  type        = string
+  default     = null
+}
+
+variable "enableUlaInternalIpv6" {
+  description = "Enable unique location address for IPv6 for the vpc"
+  type        = bool
+  default     = null
+}
+
+variable "internalIpv6Range" {
+  description = "The internal IPv6 range for the vpc"
+  type        = string
+  default     = null
+}
