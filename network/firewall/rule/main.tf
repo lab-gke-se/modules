@@ -7,8 +7,8 @@ resource "google_compute_firewall" "rule" {
   direction   = var.direction
   disabled    = var.disabled
 
-  source_ranges      = var.source_ranges
-  destination_ranges = var.destination_ranges
+  source_ranges      = var.sourceRanges
+  destination_ranges = var.destinationRanges
 
   dynamic "allow" {
     for_each = var.allowed != null ? var.allowed : []
@@ -29,7 +29,7 @@ resource "google_compute_firewall" "rule" {
   }
 
   dynamic "log_config" {
-    for_each = var.log_config != null ? [var.log_config] : []
+    for_each = var.logConfig != null ? [var.logConfig] : []
 
     content {
       metadata = try(log_config.value.metadata, "EXCLUDE_ALL_METADATA")

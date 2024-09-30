@@ -1,13 +1,14 @@
-resource "google_container_cluster" "primary" {
+resource "google_container_cluster" "cluster" {
   provider = google
 
   project                  = var.project
   deletion_protection      = var.deletion_protection
   remove_default_node_pool = coalesce(try(var.autopilot.enabled, null), false) ? null : var.remove_default_node_pool
+
   timeouts {
-    create = try(var.timeouts.create, "45m")
-    update = try(var.timeouts.update, "45m")
-    delete = try(var.timeouts.delete, "45m")
+    create = "120m" # try(var.timeouts.create, "120m")
+    update = "120m" # try(var.timeouts.update, "120m")
+    delete = "120m" # try(var.timeouts.delete, "120m")
   }
 
   dynamic "addons_config" {
@@ -118,10 +119,10 @@ resource "google_container_cluster" "primary" {
   }
 
   dynamic "authenticator_groups_config" {
-    for_each = try(var.authenticatorGroupsConfig, null) != null ? [var.authenticatorGroupsConfig] : []
+    for_each = try(var.authenticatorGroupsConfig.cluster_authenticator_security_group, null) != null ? [var.authenticatorGroupsConfig] : []
 
     content {
-      security_group = authenticator_groups_config.value.cluster_authenticator_security_group
+      security_group = try(authenticator_groups_config.value.cluster_authenticator_security_group, null)
     }
   }
 
@@ -132,9 +133,9 @@ resource "google_container_cluster" "primary" {
     for_each = try(var.autoscaling, null) != null ? [var.autoscaling] : []
 
     content {
-      enabled                     = coalesce(try(var.autopilot.enabled, null), false) ? null : try(cluster_autoscaling.value.enableNodeAutoprovisioning, null)
-      auto_provisioning_locations = cluster_autoscaling.value.autoprovisioningLocations
-      autoscaling_profile         = try(cluster_autoscaling.value.autoscalingProfile, null)
+      enabled = coalesce(try(var.autopilot.enabled, null), false) ? null : try(cluster_autoscaling.value.enableNodeAutoprovisioning, null)
+      # auto_provisioning_locations = cluster_autoscaling.value.autoprovisioningLocations ??
+      autoscaling_profile = try(cluster_autoscaling.value.autoscalingProfile, null)
 
       dynamic "auto_provisioning_defaults" {
         for_each = try(cluster_autoscaling.value.autoprovisioningNodePoolDefaults, null) != null ? [cluster_autoscaling.value.autoprovisioningNodePoolDefaults] : []
@@ -155,14 +156,16 @@ resource "google_container_cluster" "primary" {
             content {
               auto_repair  = try(management.value.autoRepair, null)
               auto_upgrade = try(management.value.autoUpgrade, null)
-              dynamic "upgrade_options" {
-                for_each = try(management.value.upgradeOptions, null) != null ? [management.value.upgradeOptions] : []
 
-                content {
-                  auto_upgrade_start_time = try(upgrade_options.value.autoUpgradeStartTime, null)
-                  description             = try(upgrade_options.value.description, null)
-                }
-              }
+              # Set automatically
+              # dynamic "upgrade_options" {
+              #   for_each = try(management.value.upgradeOptions, null) != null ? [management.value.upgradeOptions] : []
+
+              #   content {
+              #     auto_upgrade_start_time = try(upgrade_options.value.autoUpgradeStartTime, null)
+              #     description             = try(upgrade_options.value.description, null)
+              #   }
+              # }
             }
           }
 
@@ -204,6 +207,7 @@ resource "google_container_cluster" "primary" {
           }
         }
       }
+
       dynamic "resource_limits" {
         for_each = !coalesce(try(var.autopilot.enabled, null), false) && try(cluster_autoscaling.value.resourceLimits, null) != null ? cluster_autoscaling.value.resourceLimits : []
 
@@ -292,7 +296,7 @@ resource "google_container_cluster" "primary" {
       cluster_secondary_range_name  = try(ip_allocation_policy.value.clusterSecondaryRangeName, null)
       services_secondary_range_name = try(ip_allocation_policy.value.servicesSecondaryRangeName, null)
       cluster_ipv4_cidr_block       = try(ip_allocation_policy.value.clusterSecondaryRangeName, null) == null ? try(ip_allocation_policy.value.clusterIpv4CidrBlock, null) : null
-      services_ipv4_cidr_block      = try(ip_allocation_policy.value.servicesSecondaryRangeName, null) == null ? try(ip_allocation_policy.value.servicesIpv4CidrBlock, null) : null
+      services_ipv4_cidr_block      = try(ip_allocation_policy.value.clusterSecondaryRangeName, null) == null ? try(ip_allocation_policy.value.servicesIpv4CidrBlock, null) : null
       stack_type                    = try(ip_allocation_policy.value.stackType, null)
 
       dynamic "additional_pod_ranges_config" {
@@ -341,7 +345,7 @@ resource "google_container_cluster" "primary" {
   logging_service = try(var.loggingConfig, null) != null ? null : try(var.loggingService, null)
 
   dynamic "maintenance_policy" {
-    for_each = try(var.maintenancePolicy, null) != null ? [var.maintenancePolicy] : []
+    for_each = try(var.maintenancePolicy.recurringWindow, null) != null ? [var.maintenancePolicy] : []
 
     content {
       dynamic "recurring_window" {
@@ -395,7 +399,7 @@ resource "google_container_cluster" "primary" {
     for_each = try(var.masterAuthorizedNetworksConfig, null) != null ? [var.masterAuthorizedNetworksConfig] : []
     content {
       dynamic "cidr_blocks" {
-        for_each = master_authorized_networks_config.value.cidrBlocks
+        for_each = try(master_authorized_networks_config.value.cidrBlocks, null) != null ? master_authorized_networks_config.value.cidrBlocks : []
         content {
           cidr_block   = try(cidr_blocks.value.cidrBlock, null)
           display_name = try(cidr_blocks.value.displayName, null)
@@ -466,11 +470,11 @@ resource "google_container_cluster" "primary" {
     }
   }
 
-  enable_l4_ilb_subsetting                 = try(var.networkConfig.enableL4ilbSubsetting, null)
-  private_ipv6_google_access               = try(var.networkConfig.privateIpv6GoogleAccess, null)
-  datapath_provider                        = try(var.networkConfig.datapathProvider, null)
-  enable_intranode_visibility              = !coalesce(try(var.autopilot.enabled, null), false) ? try(var.networkConfig.enableIntraNodeVisibility, null) : null
-  enable_multi_networking                  = try(var.networkConfig.enableMultiNetworking, null)
+  enable_l4_ilb_subsetting    = try(var.networkConfig.enableL4ilbSubsetting, null)
+  private_ipv6_google_access  = try(var.networkConfig.privateIpv6GoogleAccess, null)
+  datapath_provider           = try(var.networkConfig.datapathProvider, null)
+  enable_intranode_visibility = !coalesce(try(var.autopilot.enabled, null), false) ? try(var.networkConfig.enableIntraNodeVisibility, null) : null
+  # enable_multi_networking                  = try(var.networkConfig.enableMultiNetworking, null) ??
   enable_cilium_clusterwide_network_policy = try(var.networkConfig.enableCiliumClusterwideNetworkPolicy, null)
   # enable_fqdn_network_policy = enableFqdnNetworkPolicy - beta
   # networkPerformanceConfig = optional(object({
@@ -533,10 +537,14 @@ resource "google_container_cluster" "primary" {
       # storage_pools = in terraform document but not in terraform...
       # secondaryBootDiskUpdateStrategy = optional(object({}), null) # Oddly TBD
 
-      # advancedMachineFeatures = optional(object({
-      #   threadsPerCore             = optional(string, null)
-      #   enableNestedVirtualization = optional(bool, null)
-      # }), null)
+      dynamic "advanced_machine_features" {
+        for_each = try(node_config.value.advancedMachineFeatures, null) != null ? [node_config.value.advancedMachineFeatures] : []
+
+        content {
+          enable_nested_virtualization = try(advanced_machine_features.value.enableNestedVirtualization, null)
+          threads_per_core             = coalesce(try(advanced_machine_features.value.threadsPerCore, null), 0)
+        }
+      }
 
       dynamic "confidential_nodes" {
         for_each = try(node_config.value.confidentialNodes, null) != null ? [node_config.value.confidentialNodes] : []
@@ -925,3 +933,30 @@ resource "google_container_cluster" "primary" {
     }
   }
 }
+
+# module "node_pool" {
+#   source   = "../node_pool"
+#   for_each = !coalesce(try(var.autopilot.enabled, null), false) && try(var.nodePools, null) != null ? { for nodepool in var.nodePools : nodepool.name => nodepool } : {}
+
+#   # Terraform / cluster variables
+#   project  = var.project
+#   cluster  = google_container_cluster.cluster.id
+#   location = var.location
+
+#   # Node Pool variables
+#   name                   = each.value.name
+#   initialNodeCount       = try(each.value.initialNodeCount, null)
+#   config                 = try(each.value.config, null)
+#   locations              = try(each.value.locations, null)
+#   networkConfig          = try(each.value.networkConfig, null)
+#   nodeVersion            = try(each.value.version, null)
+#   autoscaling            = try(each.value.autoscaling, null)
+#   management             = try(each.value.management, null)
+#   maxPodsConstraint      = try(each.value.maxPodsConstraint, null)
+#   upgradeSettings        = try(each.value.upgradeSettings, null)
+#   placementPolicy        = try(each.value.placementPolicy, null)
+#   queuedProvisioning     = try(each.value.queuedProvisioning, null)
+#   bestEffortProvisioning = try(each.value.bestEffortProvisioning, null)
+
+#   depends_on = [google_container_cluster.cluster]
+# }

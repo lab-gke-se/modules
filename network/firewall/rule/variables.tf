@@ -37,18 +37,18 @@ variable "disabled" {
   default     = null
 }
 
-variable "log_config" {
+variable "logConfig" {
   description = "The log configuration for the firewall rule"
   default     = null
 }
 
-variable "source_ranges" {
+variable "sourceRanges" {
   description = "The source ranges for the firewall rule"
   type        = list(string)
   default     = null
 }
 
-variable "destination_ranges" {
+variable "destinationRanges" {
   description = "The destination ranges for the firewall rule"
   type        = list(string)
   default     = null
