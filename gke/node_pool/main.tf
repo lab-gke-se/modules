@@ -255,24 +255,25 @@ resource "google_container_node_pool" "node_pool" {
       pod_ipv4_cidr_block  = coalesce(try(network_config.value.createPodRange, null), false) ? try(network_config.value.podIpv4CidrBlock, null) : null
       pod_range            = try(network_config.value.podRange, null)
 
-      dynamic "additional_node_network_configs" {
-        for_each = try(network_config.value.additionalNodeNetworkConfigs, null) != null ? [network_config.value.additionalNodeNetworkConfigs] : []
+      # Not supported in 5.33
+      # dynamic "additional_node_network_configs" {
+      #   for_each = try(network_config.value.additionalNodeNetworkConfigs, null) != null ? [network_config.value.additionalNodeNetworkConfigs] : []
 
-        content {
-          network    = try(additional_node_network_configs.value.network, null)
-          subnetwork = try(additional_node_network_configs.value.subnetwork, null)
-        }
-      }
+      #   content {
+      #     network    = try(additional_node_network_configs.value.network, null)
+      #     subnetwork = try(additional_node_network_configs.value.subnetwork, null)
+      #   }
+      # }
 
-      dynamic "additional_pod_network_configs" {
-        for_each = try(network_config.value.additionalPodNetworkConfigs, null) != null ? [network_config.value.additionalPodNetworkConfigs] : []
+      # dynamic "additional_pod_network_configs" {
+      #   for_each = try(network_config.value.additionalPodNetworkConfigs, null) != null ? [network_config.value.additionalPodNetworkConfigs] : []
 
-        content {
-          subnetwork          = try(additional_pod_network_configs.value.subnetwork, null)
-          secondary_pod_range = try(additional_pod_network_configs.value.secondaryPodRange, null)
-          max_pods_per_node   = try(additional_pod_network_configs.value.maxPodsPerNode.maxPodsPerNode, null)
-        }
-      }
+      #   content {
+      #     subnetwork          = try(additional_pod_network_configs.value.subnetwork, null)
+      #     secondary_pod_range = try(additional_pod_network_configs.value.secondaryPodRange, null)
+      #     max_pods_per_node   = try(additional_pod_network_configs.value.maxPodsPerNode.maxPodsPerNode, null)
+      #   }
+      # }
 
       dynamic "network_performance_config" {
         for_each = try(network_config.value.networkPerformanceConfig, null) != null ? [network_config.value.networkPerformanceConfig] : []

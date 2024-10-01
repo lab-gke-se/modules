@@ -102,19 +102,20 @@ resource "google_container_cluster" "cluster" {
         }
       }
 
-      dynamic "ray_operator_config" {
-        for_each = try(addons_config.value.rayOperatorConfig.enabled, null) != null ? [addons_config.value.rayOperatorConfig] : []
+      # Not supported in 5.33
+      #   dynamic "ray_operator_config" {
+      #     for_each = try(addons_config.value.rayOperatorConfig.enabled, null) != null ? [addons_config.value.rayOperatorConfig] : []
 
-        content {
-          enabled = try(addons_config.value.rayOperatorConfig.enabled, null)
-          ray_cluster_logging_config {
-            enabled = try(addons_config.value.rayClusterConfig.rayClusterLoggingConfig.enabled, null)
-          }
-          ray_cluster_monitoring_config {
-            enabled = try(addons_config.value.rayOperatorConfig.rayClusterMonitoringConfig.enabled, null)
-          }
-        }
-      }
+      #     content {
+      #       enabled = try(addons_config.value.rayOperatorConfig.enabled, null)
+      #       ray_cluster_logging_config {
+      #         enabled = try(addons_config.value.rayClusterConfig.rayClusterLoggingConfig.enabled, null)
+      #       }
+      #       ray_cluster_monitoring_config {
+      #         enabled = try(addons_config.value.rayOperatorConfig.rayClusterMonitoringConfig.enabled, null)
+      #       }
+      #     }
+      #   }
     }
   }
 
