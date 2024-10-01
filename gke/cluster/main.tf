@@ -130,7 +130,7 @@ resource "google_container_cluster" "cluster" {
   allow_net_admin  = try(var.autopilot.workloadPolicyConfig.allow_net_admin, null)
 
   dynamic "cluster_autoscaling" {
-    for_each = try(var.autoscaling, null) != null ? [var.autoscaling] : []
+    for_each = [var.autoscaling]
 
     content {
       enabled = coalesce(try(var.autopilot.enabled, null), false) ? null : try(cluster_autoscaling.value.enableNodeAutoprovisioning, null)
@@ -179,7 +179,7 @@ resource "google_container_cluster" "cluster" {
           }
 
           dynamic "upgrade_settings" {
-            for_each = try(auto_provisioning_defaults.values.upgradeSettings, null) != null ? [auto_provisioning_defaults.values.upgradeSettings] : []
+            for_each = try(auto_provisioning_defaults.value.upgradeSettings, null) != null ? [auto_provisioning_defaults.value.upgradeSettings] : []
 
             content {
               strategy        = try(upgrade_settings.value.strategy, null)
@@ -187,13 +187,13 @@ resource "google_container_cluster" "cluster" {
               max_unavailable = try(upgrade_settings.value.maxUnavailable, null)
 
               dynamic "blue_green_settings" {
-                for_each = try(upgrade_settings.values.blueGreenSettings, null) != null ? [upgrade_settings.values.blueGreenSettings] : []
+                for_each = try(upgrade_settings.value.blueGreenSettings, null) != null ? [upgrade_settings.value.blueGreenSettings] : []
 
                 content {
                   node_pool_soak_duration = try(blue_green_settings.value.nodePoolSoakDuration, null)
 
                   dynamic "standard_rollout_policy" {
-                    for_each = try(blue_green_settings.values.standardRolloutPolicy, null) != null ? [blue_green_settings.values.blueGreenSettstandardRolloutPolicyings] : []
+                    for_each = try(blue_green_settings.value.standardRolloutPolicy, null) != null ? [blue_green_settings.value.blueGreenSettstandardRolloutPolicyings] : []
 
                     content {
                       batch_percentage    = try(standard_rollout_policy.value.batchPercentate, null)
@@ -332,7 +332,7 @@ resource "google_container_cluster" "cluster" {
 
   enable_legacy_abac = try(var.legacyAbac.enabled, null)
   location           = try(var.location, null)
-  node_locations     = try(var.locations, null)
+  node_locations     = setsubtract(try(var.locations, null), [try(var.location, null)])
 
   dynamic "logging_config" {
     for_each = try(var.loggingConfig, null) != null ? [var.loggingConfig] : []
@@ -345,7 +345,7 @@ resource "google_container_cluster" "cluster" {
   logging_service = try(var.loggingConfig, null) != null ? null : try(var.loggingService, null)
 
   dynamic "maintenance_policy" {
-    for_each = try(var.maintenancePolicy.recurringWindow, null) != null ? [var.maintenancePolicy] : []
+    for_each = (try(var.maintenancePolicy.window, null) != null) ? [var.maintenancePolicy] : []
 
     content {
       dynamic "recurring_window" {
@@ -722,7 +722,7 @@ resource "google_container_cluster" "cluster" {
       }
 
       dynamic "taint" {
-        for_each = try(node_config.value.taint, null) != null ? node_config.value.taint : []
+        for_each = try(node_config.value.taints, null) != null ? node_config.value.taints : []
 
         content {
           key    = taint.value.key

@@ -345,10 +345,10 @@ resource "google_container_node_pool" "node_pool" {
   }
 
   dynamic "placement_policy" {
-    for_each = try(var.placementPolicy, null) != null ? [var.placementPolicy] : []
+    for_each = try(var.placementPolicy.type, null) != null ? [var.placementPolicy] : []
 
     content {
-      type         = try(placement_policy.value.type, null)
+      type         = placement_policy.value.type
       tpu_topology = try(placement_policy.value.tpuTopology, null)
       policy_name  = try(placement_policy.value.policyName, null)
     }
