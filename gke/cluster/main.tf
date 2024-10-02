@@ -839,6 +839,13 @@ resource "google_container_cluster" "cluster" {
     }
   }
 
+  # This is a lot of duplicate work but it might solve the default node pool issue
+  # dynamic "node_pools" {
+  #   for_each = try(var.nodePools, null) != null ? [for nodePool in var.nodePools : nodePool if nodePool.name == "default-pool"] : []
+
+
+  # }
+
   dynamic "notification_config" {
     for_each = try(var.notificationConfig, null) != null ? [var.notificationConfig] : []
 
@@ -934,30 +941,3 @@ resource "google_container_cluster" "cluster" {
     }
   }
 }
-
-# module "node_pool" {
-#   source   = "../node_pool"
-#   for_each = !coalesce(try(var.autopilot.enabled, null), false) && try(var.nodePools, null) != null ? { for nodepool in var.nodePools : nodepool.name => nodepool } : {}
-
-#   # Terraform / cluster variables
-#   project  = var.project
-#   cluster  = google_container_cluster.cluster.id
-#   location = var.location
-
-#   # Node Pool variables
-#   name                   = each.value.name
-#   initialNodeCount       = try(each.value.initialNodeCount, null)
-#   config                 = try(each.value.config, null)
-#   locations              = try(each.value.locations, null)
-#   networkConfig          = try(each.value.networkConfig, null)
-#   nodeVersion            = try(each.value.version, null)
-#   autoscaling            = try(each.value.autoscaling, null)
-#   management             = try(each.value.management, null)
-#   maxPodsConstraint      = try(each.value.maxPodsConstraint, null)
-#   upgradeSettings        = try(each.value.upgradeSettings, null)
-#   placementPolicy        = try(each.value.placementPolicy, null)
-#   queuedProvisioning     = try(each.value.queuedProvisioning, null)
-#   bestEffortProvisioning = try(each.value.bestEffortProvisioning, null)
-
-#   depends_on = [google_container_cluster.cluster]
-# }
