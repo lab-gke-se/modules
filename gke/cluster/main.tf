@@ -6,9 +6,9 @@ resource "google_container_cluster" "cluster" {
   remove_default_node_pool = coalesce(try(var.autopilot.enabled, null), false) ? null : var.remove_default_node_pool
 
   timeouts {
-    create = "120m" # try(var.timeouts.create, "120m")
-    update = "120m" # try(var.timeouts.update, "120m")
-    delete = "120m" # try(var.timeouts.delete, "120m")
+    create = try(var.timeouts.create, null)
+    update = try(var.timeouts.update, null)
+    delete = try(var.timeouts.delete, null)
   }
 
   dynamic "addons_config" {

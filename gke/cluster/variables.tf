@@ -16,15 +16,15 @@ variable "remove_default_node_pool" {
   default     = null
 }
 
-# variable "timeouts" {
-#   description = "Terraform timeout values"
-#   type = object({
-#     create = optional(string, null)
-#     update = optional(string, null)
-#     delete = optional(string, null)
-#   })
-#   default = null
-# }
+variable "timeouts" {
+  description = "Terraform timeout values"
+  type = object({
+    create = optional(string, "45m")
+    update = optional(string, "45m")
+    delete = optional(string, "45m")
+  })
+  default = null
+}
 
 # Kubernetes variables
 variable "addonsConfig" {

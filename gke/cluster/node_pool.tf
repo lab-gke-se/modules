@@ -374,3 +374,13 @@ resource "google_container_node_pool" "node_pool" {
 
   depends_on = [google_container_cluster.cluster]
 }
+
+# resource "null_resource" "delete_default_node_pool" {
+#   #   count = var.remove_default_node_pool && contains([for np in google_container_cluster.cluster.node_pool : np.name], "default-pool") ? 1 : 0
+
+#   depends_on = [google_container_node_pool.node_pool, google_container_cluster.cluster]
+
+#   provisioner "local-exec" {
+#     command = "gcloud container node-pools delete default-pool --cluster ${google_container_cluster.cluster.name} --region ${var.location} --quiet"
+#   }
+# }
