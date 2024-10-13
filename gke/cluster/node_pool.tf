@@ -299,10 +299,9 @@ resource "google_container_node_pool" "node_pool" {
   }
 
   dynamic "autoscaling" {
-    for_each = try(each.value.autoscaling, null) != null ? [each.value.autoscaling] : []
+    for_each = try(each.value.autoscaling.enabled, false) ? [each.value.autoscaling] : []
 
     content {
-      # enabled              = optional(bool, null)
       min_node_count       = try(autoscaling.value.minNodeCount, null)
       max_node_count       = try(autoscaling.value.maxNodeCount, null)
       total_min_node_count = try(autoscaling.value.totalMinNodeCount, null)
