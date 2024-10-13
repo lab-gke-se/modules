@@ -299,7 +299,7 @@ resource "google_container_node_pool" "node_pool" {
   }
 
   dynamic "autoscaling" {
-    for_each = each.value.autoscaling.enabled ? [each.value.autoscaling] : []
+    for_each = coalesce(try(each.value.autoscaling.enabled, null), false) ? [each.value.autoscaling] : []
 
     content {
       min_node_count       = try(autoscaling.value.minNodeCount, null)
