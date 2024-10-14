@@ -1,11 +1,14 @@
 # Modules
-This repository contains a set of terraform modules for the google cloud platform. The modules are written to a standard pattern to abstract away from the terraform language and prove modules that mirror the google cloud apis. This intention is that this is a stepping stone to moving away from terraform towards a configuration management approach to cloud infrasturcture. 
+This repository contains a set of terraform modules for the google cloud platform. The modules are written to a standard pattern, to abstract away from the terraform language, and provide modules that mirror the google cloud apis. This is intended as a stepping stone to moving away from terraform and towards a configuration management approach for cloud infrastructure (Infrastructure as Configuration rather than Infrastructure as code).
+
+# Approach
+The parameters for each module are written to match the google cloud api payloads and therefore no understanding of the underlying terraform is required to use the module. The module is responsible for translating from the google cloud api into the terraform resource format (that then translates it back into google cloud apis).
 
 # Usage
-The general usage pattern is the same for all modules. Firstly, create a yaml file with the definition of the resource you want to create. You can create yaml files by hand or extract them from existing cloud resources. Next, write a standard terraform module to read the yaml file and pass the variable high level objects to the corresponding terraform module.
+The modules can be used as standard terraform module, with parameters that conform to the google cloud api, or they can be used in a configuration management approach that stores the cloud configuration in yaml files. These yaml files make it easy to define the cloud configuration and apply it using the terraform modules. They can also be used for validating and enforcing the cloud configuration using policies and guardrails. 
 
 # Example 
-There are many examples in the example folder but they all follow the same general pattern. The following yaml file shows a typical artifact registry definition for a docker repository. The project, location, repo_name and kms_key have been abstracted to provide a common template. 
+The following is a simple example of how to create an artifactregistry docker repository; but all modules basically follow the same pattern. Firstly, create a yaml file with the configuration for the resource you want to create. The yaml file format is based on the google cloud rest api payload for that resource. The following is an example of the definition for a simple artifactregistry docker repository. Replace the variables with the required values for your own environment.
 
 ```
 cleanupPolicyDryRun: true
@@ -13,21 +16,14 @@ dockerConfig: {}
 format: DOCKER
 mode: STANDARD_REPOSITORY
 name: projects/${project}/locations/${location}/repositories/${repo_name}
-kmsKeyName: ${kms_key}
+kmsKeyName: projects/${project}/locations/${location}/keyRings/${key_ring}/cryptoKeys/${key}
 ```
 
-The following terraform code shows how to read the yaml file, substituting known values for the abstracted values and then calls the artifact registry module with the parameters from the yaml file. 
+To create this resource in google cloud, read and decode the yaml file and use the variables created as inputs to the terraform module. Make sure all optional variables are encased in try functions to set the values to null if they don't exist. 
 
 ```
 locals {
-  substitutions = {
-    kms_key         = module.kms_key.key_id
-    project         = "prj-test-1"
-    location        = "us-east4"
-    repo_name       = "images"
-  }
-
-  artifactregistry_config = yamldecode(templatefile("${path.module}/config/artifactregistry/${filename}", local.substitutions)) 
+  artifactregistry_config = yamldecode(file("${path.module}/config/artifactregistry/${filename}")
 }
 
 module "registry" {
@@ -48,3 +44,23 @@ module "registry" {
   remoteRepositoryConfig  = try(artifactregistry_config.remoteRepositoryConfig, null)
 }
 ```
+
+# Existing Cloud Resources
+Existing cloud resources can be brought under IaC control using these modules by extracting the configuration to a yaml file, importing the resource to terraform and running an apply. 
+
+```
+gcloud artifactregistry repository describe ${repo_name} --location=${location} --project=${project} > ./config/artifactrepository/${repo_name}.yaml
+
+terraform import module.registry ${project}/${location}/${repo_name}
+
+terraform init
+terraform fmt
+terraform validate
+terraform plan
+terraform apply
+```
+
+# Drift detection and Guardrails
+This same approach can be used for drift detection and writing guardrails. The yaml file becomes the golden source for the cloud coniguration, changes to the yaml files will cause the cloud configuration to change, on a terraform apply, and the cloud configuration can be extracted and compared against the golden source to detect any drift. 
+
+Guardrails can be written that take the golden source yaml files and automatically compare any change to resources against the golden source, alerting on any differences and autoremediating back to the golden source if required. 
