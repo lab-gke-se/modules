@@ -11,7 +11,7 @@ resource "google_container_node_pool" "node_pool" {
   # Node Pool values
   name               = each.value.name
   initial_node_count = each.value.initialNodeCount
-  version            = local.min_master_version
+  version            = local.min_node_version
   node_locations     = each.value.locations
 
   # This should be kept synced with node_config in cluster
