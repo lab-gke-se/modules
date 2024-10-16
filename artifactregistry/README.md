@@ -1,3 +1,6 @@
+# Artifact Registry Module
+This module creates artiface registry repositories in google cloud
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
