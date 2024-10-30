@@ -1,14 +1,14 @@
-variable "name" {
-  description = "The service account name"
+variable "email" {
+  description = "The service account email address"
   type        = string
 }
 
-variable "project" {
+variable "projectId" {
   description = "The service account project"
   type        = string
 }
 
-variable "display_name" {
+variable "displayName" {
   description = "The service account display name"
   type        = string
   default     = null

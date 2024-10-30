@@ -1,4 +1,5 @@
-# Google Kubernetes Engine Cluster
+# Google Kubernetes Engine Cluster Terraform Module
+This module creates
 
 ## Usage
 To use this module, create a yaml file with the configuration for the cluster. The following command can be used to extract the definition of an existing cluster. Some examples of different cluster configurations can be found in the examples folder. 

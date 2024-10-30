@@ -8,7 +8,7 @@ The parameters for each module are written to match the google cloud api payload
 The modules can be used as standard terraform module, with parameters that conform to the google cloud api, or they can be used in a configuration management approach that stores the cloud configuration in yaml files. These yaml files make it easy to define the cloud configuration and apply it using the terraform modules. They can also be used for validating and enforcing the cloud configuration using policies and guardrails. 
 
 # Example 
-The following is a simple example of how to create an artifactregistry docker repository; but all modules basically follow the same pattern. Firstly, create a yaml file with the configuration for the resource you want to create. The yaml file format is based on the google cloud rest api payload for that resource. The following is an example of the definition for a simple artifactregistry docker repository. Replace the variables with the required values for your own environment.
+The following is a simple example of how to create an artifactregistry docker repository; but all modules basically follow the same pattern. Firstly, create a yaml file with the configuration for the resource you want to create. The yaml file format is based on the google cloud rest api payload for that resource. The following is an example of the definition for a simple artifactregistry docker repository. Replace the variables with the required values for your own environment. Create this file in the subdirectory config/artifactrepository/${repo_name}.yaml
 
 ```
 cleanupPolicyDryRun: true
@@ -23,7 +23,7 @@ To create this resource in google cloud, read and decode the yaml file and use t
 
 ```
 locals {
-  artifactregistry_config = yamldecode(file("${path.module}/config/artifactregistry/${filename}")
+  artifactregistry_config = yamldecode(file("${path.module}/config/artifactregistry/${repo_name}.yaml")
 }
 
 module "registry" {
@@ -45,11 +45,25 @@ module "registry" {
 }
 ```
 
+# Testing Deployment
+The deployment of the resource can be tested by extracting the configuration of the resource and comparing it with the original yaml file. The following command shows an example of how to extract 
+
+```
+gcloud artifacts repositories describe ${repo_name} --location=${location} --project=${project} > ./config/artifactsregistry/${repo_name}.out
+```
+
+
+
+
+
+# Loading Multiple Resource
+A more generic approach can be used for multiple resources that uses fileset to load a set of 
+
 # Existing Cloud Resources
 Existing cloud resources can be brought under IaC control using these modules by extracting the configuration to a yaml file, importing the resource to terraform and running an apply. 
 
 ```
-gcloud artifactregistry repository describe ${repo_name} --location=${location} --project=${project} > ./config/artifactrepository/${repo_name}.yaml
+gcloud artifacts repositories describe ${repo_name} --location=${location} --project=${project} > ./config/artifactsregistry/${repo_name}.yaml
 
 terraform import module.registry ${project}/${location}/${repo_name}
 

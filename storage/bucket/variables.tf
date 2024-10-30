@@ -1,7 +1,8 @@
+# Terraform variable, default to false in production environments
 variable "force_destroy" {
   description = "Allows terraform to delete the bucket even if it isn't empty"
   type        = bool
-  default     = null
+  default     = true
 }
 
 variable "project" {
@@ -9,23 +10,42 @@ variable "project" {
   type        = string
 }
 
-variable "encryption" {
+# This is what the documentation says but it doesn't match the payload
+# variable "encryption" {
+#   description = "Encryption configuration for a bucket."
+#   type = object({
+#     defaultKmsKeyName = string
+#   })
+#   default = null
+# }
+
+variable "default_kms_key" {
   description = "Encryption configuration for a bucket."
-  type = object({
-    defaultKmsKeyName = string
-  })
-  default = null
+  type        = string
+  default     = null
 }
 
-variable "iamConfiguration" {
-  description = "The IAM configuration for the bucket"
-  type = object({
-    publicAccessPrevention = string
-    uniformBucketLevelAccess = object({
-      enabled = bool
-    })
-  })
-  default = null
+# variable "iamConfiguration" {
+#   description = "The IAM configuration for the bucket"
+#   type = object({
+#     publicAccessPrevention = string
+#     uniformBucketLevelAccess = object({
+#       enabled = bool
+#     })
+#   })
+#   default = null
+# }
+
+variable "public_access_prevention" {
+  description = ""
+  type        = string
+  default     = null
+}
+
+variable "uniform_bucket_level_access" {
+  description = ""
+  type        = bool
+  default     = true
 }
 
 variable "labels" {
@@ -75,19 +95,36 @@ variable "softDeletePolicy" {
   default = null
 }
 
-variable "storageClass" {
-  description = "The bucket's default storage class"
+# Payload doesn't match interface!
+# variable "storageClass" {
+#   description = "The bucket's default storage class"
+#   type        = string
+#   default     = null
+# }
+
+variable "default_storage_class" {
+  description = "The bucket's default storage clasee"
   type        = string
   default     = null
 }
 
-variable "versioning" {
+# variable "versioning" {
+#   description = "The bucket's versioning configuration"
+#   type = object({
+#     enabled = bool
+#   })
+#   default = null
+# }
+
+variable "versioning_enabled" {
   description = "The bucket's versioning configuration"
-  type = object({
-    enabled = bool
-  })
-  default = null
+  type        = bool
+  default     = null
 }
+
+# location: US-EAST4
+# location_type: region
+
 
 #   "defaultEventBasedHold": boolean,
 #   "hierarchicalNamespace": {

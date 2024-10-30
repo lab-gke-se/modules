@@ -197,7 +197,7 @@ variable "metadata" {
       value = optional(string, null)
     })), null)
   })
-  default = null
+  default = {}
 }
 
 variable "serviceAccounts" {
@@ -308,6 +308,7 @@ variable "reservationAffinity" {
     key                    = optional(string, null)
     values                 = optional(list(string), null)
   })
+  default = null
 }
 
 variable "hostname" {
@@ -361,6 +362,7 @@ variable "confidentialInstanceConfig" {
     enableConfidentialCompute = optional(bool, null)
     confidentialInstanceType  = optional(string, null)
   })
+  default = null
 }
 
 #   "fingerprint": string,

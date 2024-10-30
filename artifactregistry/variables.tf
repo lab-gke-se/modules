@@ -1,8 +1,3 @@
-variable "project" {
-  description = "The project for the artifact registry"
-  type        = string
-}
-
 variable "name" {
   description = ""
   type        = string

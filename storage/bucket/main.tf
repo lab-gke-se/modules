@@ -6,15 +6,15 @@ resource "google_storage_bucket" "bucket" {
   name                        = var.name
   labels                      = var.labels
   location                    = var.location
-  public_access_prevention    = try(var.iamConfiguration.publicAccessPrevention, null)
-  storage_class               = var.storageClass
-  uniform_bucket_level_access = try(var.iamConfiguration.uniformBucketLevelAccess.enabled, null)
+  public_access_prevention    = var.public_access_prevention
+  storage_class               = var.default_storage_class
+  uniform_bucket_level_access = var.uniform_bucket_level_access
 
   dynamic "encryption" {
-    for_each = try(var.encryption.defaultKmsKeyName, null) != null ? [var.encryption] : []
+    for_each = try(var.default_kms_key, null) != null ? [var.default_kms_key] : []
 
     content {
-      default_kms_key_name = encryption.value.defaultKmsKeyName
+      default_kms_key_name = encryption.value
     }
   }
 
@@ -46,10 +46,10 @@ resource "google_storage_bucket" "bucket" {
   }
 
   dynamic "versioning" {
-    for_each = try(var.versioning.enabled, null) != null ? [var.versioning] : []
+    for_each = try(var.versioning_enabled, null) != null ? [var.versioning_enabled] : []
 
     content {
-      enabled = versioning.value.enabled
+      enabled = versioning.value
     }
   }
 }

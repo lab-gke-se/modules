@@ -7,7 +7,7 @@ resource "google_compute_instance" "instance" {
   machine_type            = var.machineType
   can_ip_forward          = var.canIpForward
   min_cpu_platform        = var.minCpuPlatform
-  zone                    = reverse(split("/", var.zone))[0]
+  zone                    = try(split("/", var.zone)[8], null)
   tags                    = try(var.tags.items, null) != null ? var.tags.items : []
   deletion_protection     = var.deletionProtection
   resource_policies       = var.resourcePolicies
@@ -44,12 +44,12 @@ resource "google_compute_instance" "instance" {
         for_each = try(boot_disk.value.initializeParams, null) != null ? [boot_disk.values.initializeParams] : []
 
         content {
-          size                        = try(initialize_params.value.diskSizeGb, null)
-          type                        = try(initialize_params.value.type, null)
-          image                       = try(initialize_params.value.source, null)
-          labels                      = try(initialize_params.value.labels, null)
-          resource_manager_tags       = try(initialize_params.value.resourceManagerTags, null)
-          resource_policies           = try(initialize_params.value.resourcePolicies, null)
+          size                  = try(initialize_params.value.diskSizeGb, null)
+          type                  = try(initialize_params.value.type, null)
+          image                 = try(initialize_params.value.source, null)
+          labels                = try(initialize_params.value.labels, null)
+          resource_manager_tags = try(initialize_params.value.resourceManagerTags, null)
+          # resource_policies           = try(initialize_params.value.resourcePolicies, null)
           provisioned_iops            = try(initialize_params.value.provisioned_iops, null)
           provisioned_throughput      = try(initialize_params.value.provisioned_throughput, null)
           enable_confidential_compute = try(initialize_params.value.enableConfidentialCompute, null)

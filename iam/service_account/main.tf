@@ -1,7 +1,13 @@
 resource "google_service_account" "service_account" {
-  account_id   = var.name
-  project      = var.project
-  display_name = var.display_name
+  project      = var.projectId
+  account_id   = split("@", var.email)[0]
+  display_name = var.displayName
   description  = var.description
   disabled     = var.disabled
 }
+
+
+
+
+
+

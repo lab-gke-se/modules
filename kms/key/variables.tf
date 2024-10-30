@@ -3,74 +3,19 @@ variable "name" {
   type        = string
 }
 
-variable "project" {
-  description = "The project containing the service"
-  type        = string
-}
-
-variable "project_number" {
-  description = "The project number of the project (required for compute.googleapis.com)"
-  type        = string
-  default     = null
-}
-
-variable "services" {
-  description = "A list of services that will use the key"
-  type        = list(string)
-  default     = []
-}
-
-variable "encrypters" {
-  description = "A list of principals that are allowed to encrypt using this key"
-  type        = list(string)
-  default     = []
-}
-
-variable "decrypters" {
-  description = "A list of principals that are allowed to decrypt using this key"
-  type        = list(string)
-  default     = []
-}
-
-variable "prevent_destroy" {
-  description = "Prevent the destruction of the key?"
-  type        = bool
-  default     = false
-}
-
-variable "rotation_period" {
-  description = "The rotation period for the key"
-  type        = string
-  default     = null
-}
-
-variable "destroy_scheduled_duration" {
-  description = "The destroy scheduled duration for the key"
-  type        = string
-  default     = null
-}
-
-variable "key_ring" {
-  description = "The key ring identifier"
-  type        = string
-}
-
 variable "purpose" {
-  description = "The purpose of the key"
+  description = "The immutable purpose for this CryptoKey"
   type        = string
   default     = null
 }
 
-variable "algorithm" {
-  description = "The algorithm for the key"
-  type        = string
-  default     = "GOOGLE_SYMMETRIC_ENCRYPTION"
-}
-
-variable "protection_level" {
-  description = "The algorithm for the key"
-  type        = string
-  default     = "HSM"
+variable "versionTemplate" {
+  description = "A template describing settings for new CryptoKeyVersion instances"
+  type = object({
+    protectionLevel = optional(string, null)
+    algorithm       = optional(string, null)
+  })
+  default = null
 }
 
 variable "labels" {
@@ -79,3 +24,40 @@ variable "labels" {
   default     = null
 }
 
+variable "importOnly" {
+  description = "Whether this key may contain imported versions only"
+  type        = bool
+  default     = null
+}
+
+variable "destroyScheduledDuration" {
+  description = "The period of time that versions of this key spend in the DESTROY_SCHEDULED state before transitioning to DESTROYED"
+  type        = string
+  default     = null
+}
+
+variable "cryptoKeyBackend" {
+  description = " The resource name of the backend environment where the key material for all CryptoKeyVersions associated with this CryptoKey reside and where all related cryptographic operations are performed"
+  type        = string
+  default     = null
+}
+
+variable "keyAccessJustificationsPolicy" {
+  description = "The policy used for Key Access Justifications Policy Enforcement"
+  type = object({
+    allowedAccessReasons = optional(list(string), null)
+  })
+  default = null
+}
+
+variable "nextRotationTime" {
+  description = "At nextRotationTime, the Key Management Service will automatically create a new version and set it as primary"
+  type        = string
+  default     = null
+}
+
+variable "rotationPeriod" {
+  description = "nextRotationTime will be advanced by this period when the service automatically rotates a key"
+  type        = string
+  default     = null
+}
