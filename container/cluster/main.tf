@@ -131,11 +131,10 @@ resource "google_container_cluster" "cluster" {
   allow_net_admin  = try(var.autopilot.workloadPolicyConfig.allow_net_admin, null)
 
   dynamic "cluster_autoscaling" {
-    for_each = var.autoscaling.enableNodeAutoprovisioning ? [var.autoscaling] : []
-    # for_each = !coalesce(try(var.autopilot.enabled, null), false) && coalesce(try(var.autoscaling.enableNodeAutoprovisioning, null), false) ? [var.autoscaling] : []
+    for_each = try(var.autoscaling, null) != null ? [var.autoscaling] : []
 
     content {
-      enabled = try(cluster_autoscaling.value.enableNodeAutoprovisioning, null)
+      enabled = try(cluster_autoscaling.value.enabled, null)
       # auto_provisioning_locations = cluster_autoscaling.value.autoprovisioningLocations ??
       autoscaling_profile = try(cluster_autoscaling.value.autoscalingProfile, null)
 
