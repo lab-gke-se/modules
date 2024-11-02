@@ -41,7 +41,7 @@ variable "logConfig" {
   description = "The log configuration for the firewall rule"
   type = object({
     enable   = optional(bool, false)
-    metadata = optional(string, null)
+    metadata = optional(string, "EXCLUDE_ALL_METADATA")
   })
   default = null
 }

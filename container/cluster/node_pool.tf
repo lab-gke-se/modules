@@ -4,7 +4,7 @@ resource "google_container_node_pool" "node_pool" {
 
   # Terraform / cluster values
   project  = var.project
-  cluster  = google_container_cluster.cluster.id
+  cluster  = google_container_cluster.cluster.name
   location = var.location
   # name_prefix = var.name_prefix
 

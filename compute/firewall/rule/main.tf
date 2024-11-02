@@ -32,7 +32,7 @@ resource "google_compute_firewall" "rule" {
     for_each = try(var.logConfig.enable, false) ? [var.logConfig] : []
 
     content {
-      metadata = try(log_config.value.metadata, "EXCLUDE_ALL_METADATA")
+      metadata = log_config.value.metadata
     }
   }
 }
