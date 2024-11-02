@@ -39,7 +39,11 @@ variable "disabled" {
 
 variable "logConfig" {
   description = "The log configuration for the firewall rule"
-  default     = null
+  type = object({
+    enable   = optional(bool, false)
+    metadata = optional(string, null)
+  })
+  default = null
 }
 
 variable "sourceRanges" {
