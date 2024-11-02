@@ -479,7 +479,7 @@ variable "monitoringConfig" {
     advancedDatapathObservabilityConfig = optional(object({
       enableMetrics = optional(bool, null)
       relayMode     = optional(string, null)
-      enableRelay   = optional(bool, null)
+      enableRelay   = optional(bool, false)
     }), null)
     componentConfig = optional(object({
       enableComponents = optional(list(string), null)
