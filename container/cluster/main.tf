@@ -134,9 +134,9 @@ resource "google_container_cluster" "cluster" {
     for_each = try(var.autoscaling, null) != null ? [var.autoscaling] : []
 
     content {
-      enabled = try(cluster_autoscaling.value.enabled, null)
-      # auto_provisioning_locations = cluster_autoscaling.value.autoprovisioningLocations ??
-      autoscaling_profile = try(cluster_autoscaling.value.autoscalingProfile, null)
+      enabled                     = try(cluster_autoscaling.value.enableNodeAutoprovisioning, null)
+      auto_provisioning_locations = try(cluster_autoscaling.value.autoprovisioningLocations, null)
+      autoscaling_profile         = try(cluster_autoscaling.value.autoscalingProfile, null)
 
       dynamic "auto_provisioning_defaults" {
         for_each = try(cluster_autoscaling.value.autoprovisioningNodePoolDefaults, null) != null ? [cluster_autoscaling.value.autoprovisioningNodePoolDefaults] : []
