@@ -82,7 +82,7 @@ resource "google_pubsub_subscription" "subscription" {
     for_each = try(var.expirationPolicy, null) != null ? [var.expirationPolicy] : []
 
     content {
-      ttl = try(expariation_policy.value.ttl, null)
+      ttl = try(expiriation_policy.value.ttl, null)
     }
   }
 
