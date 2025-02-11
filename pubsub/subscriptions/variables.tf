@@ -15,7 +15,7 @@ variable "topic" {
 
 variable "labels" {
   description = "The labels for the subscription"
-  type        = map(string, string)
+  type        = map(string)
   default     = null
 }
 
@@ -125,7 +125,7 @@ variable "expirationPolicy" {
 variable "deadLetterPolicy" {
   type = object({
     deadLetterTopic     = optional(string, null)
-    maxDeliveryAttempts = optiona(number, null)
+    maxDeliveryAttempts = optional(number, null)
   })
   default = null
 }
