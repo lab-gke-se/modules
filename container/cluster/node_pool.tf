@@ -145,7 +145,7 @@ resource "google_container_node_pool" "node_pool" {
           cpu_cfs_quota        = try(kubelet_config.value.cpuCfsQuota, null)
           cpu_cfs_quota_period = try(kubelet_config.value.cpuCfsQuotaPeriod, null)
           pod_pids_limit       = try(kubelet_config.value.podPidsLimit, null)
-          # insecure_kubelet_readonly_port_enabled = kubelet_config.value.insecureKubeletReadonlyPortEnabled 
+          # insecure_kubelet_readonly_port_enabled = coalesce(try(kubelet_config.value.insecureKubeletReadonlyPortEnabled, null), false) ? "TRUE" : "FALSE"
         }
       }
 

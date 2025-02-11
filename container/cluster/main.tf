@@ -149,7 +149,6 @@ resource "google_container_cluster" "cluster" {
           min_cpu_platform  = try(auto_provisioning_defaults.value.minCpuPlatform, null)
           oauth_scopes      = try(auto_provisioning_defaults.value.oauthScopes, null)
           service_account   = try(auto_provisioning_defaults.value.serviceAccount, null)
-          # ?? insecure_kubelet_readonly_port_enabled = try(auto_provisioning_defaults.value.insecureKubeletReadonlyPortEnabled, null)
 
           dynamic "management" {
             for_each = try(auto_provisioning_defaults.value.management, null) != null ? [auto_provisioning_defaults.value.management] : []
@@ -236,6 +235,16 @@ resource "google_container_cluster" "cluster" {
 
     content {
       enabled = try(confidential_nodes.value.enabled, null)
+    }
+  }
+
+  dynamic "control_plane_endpoints_config" {
+    for_each = try(var.controlPlaneEndpointsConfig, null) != null ? [var.controlPlaneEndpointsConfig] : []
+
+    content {
+      dns_endpoint_config {
+        allow_external_traffic = try(control_plane_endpoints_config.value.allowExternalTraffic, null)
+      }
     }
   }
 
@@ -645,7 +654,7 @@ resource "google_container_cluster" "cluster" {
           cpu_cfs_quota        = try(kubelet_config.value.cpuCfsQuota, null)
           cpu_cfs_quota_period = try(kubelet_config.value.cpuCfsQuotaPeriod, null)
           pod_pids_limit       = try(kubelet_config.value.podPidsLimit, null)
-          # insecure_kubelet_readonly_port_enabled = kubelet_config.value.insecureKubeletReadonlyPortEnabled 
+          # insecure_kubelet_readonly_port_enabled = coalesce(try(kubelet_config.value.insecureKubeletReadonlyPortEnabled, null), false) ? "TRUE" : "FALSE"
         }
       }
 
@@ -755,6 +764,7 @@ resource "google_container_cluster" "cluster" {
   #   default     = null
   # }
 
+  # Doesn't appear to exist any more?
   dynamic "node_pool_auto_config" {
     for_each = try(var.nodePoolAutoConfig, null) != null ? [var.nodePoolAutoConfig] : []
 
@@ -768,17 +778,17 @@ resource "google_container_cluster" "cluster" {
       }
       resource_manager_tags = try(node_pool_auto_config.value.resourceManagerTags.tags, null)
 
-      # dynamic "node_kubelet_config" { ??
-      #   for_each = try(node_pool_auto_config.value.nodeKubletConfig, null) != null ? [node_pool_auto_config.value.nodeKubletConfig] : []
+      dynamic "node_kubelet_config" {
+        for_each = try(node_pool_auto_config.value.nodeKubletConfig, null) != null ? [node_pool_auto_config.value.nodeKubletConfig] : []
 
-      #   content {
-      #     insecure_kubelet_readonly_port_enabled = try(node_kubelet.value.insecureKubeletReadonlyPortEnabled, null)
-      #     # cpu_manager_policy = try(node_kubelet_config.cpuManagerPolicy, null)
-      #     # cpuCfsQuota                        = optional(bool, null)
-      #     # cpuCfsQuotaPeriod                  = optional(string, null)
-      #     # podPidsLimit                       = optional(string, null)
-      #   }
-      # }
+        content {
+          insecure_kubelet_readonly_port_enabled = try(node_kubelet.value.insecureKubeletReadonlyPortEnabled, null)
+          # cpu_manager_policy = try(node_kubelet_config.cpuManagerPolicy, null)
+          # cpuCfsQuota                        = optional(bool, null)
+          # cpuCfsQuotaPeriod                  = optional(string, null)
+          # podPidsLimit                       = optional(string, null)
+        }
+      }
     }
   }
 
@@ -818,22 +828,23 @@ resource "google_container_cluster" "cluster" {
             }
           }
 
-          # dynamic "gcfs_config" {
-          #   for_each = try(node_config_defaults.value.gcfsConfig.enabled, null) != null ? [node_config_defaults.value.gcfsConfig] : []
+          dynamic "gcfs_config" {
+            for_each = try(node_config_defaults.value.gcfsConfig.enabled, null) != null ? [node_config_defaults.value.gcfsConfig] : []
 
-          #   content {
-          #     enabled = try(node_config_defaults.value.gcfsConfig.enabled, null)
-          #   }
-          # }
+            content {
+              enabled = try(node_config_defaults.value.gcfsConfig.enabled, null)
+            }
+          }
 
-          #       nodeKubeletConfig = optional(object({
-          #         cpuManagerPolicy                   = optional(string, null)
-          #         cpuCfsQuota                        = optional(bool, null)
-          #         cpuCfsQuotaPeriod                  = optional(string, null)
-          #         podPidsLimit                       = optional(string, null)
-          #         insecureKubeletReadonlyPortEnabled = optional(bool, null)
-          #       }), null)
-          #     }), null)
+          #  Not expected here?
+          #   nodeKubeletConfig = optional(object({
+          #     cpuManagerPolicy                   = optional(string, null)
+          #     cpuCfsQuota                        = optional(bool, null)
+          #     cpuCfsQuotaPeriod                  = optional(string, null)
+          #     podPidsLimit                       = optional(string, null)
+          #     insecureKubeletReadonlyPortEnabled = optional(bool, null)
+          #   }), null)
+          # }), null)
         }
       }
     }
@@ -908,7 +919,14 @@ resource "google_container_cluster" "cluster" {
         dataset_id = bigquery_destination.value.datasetId
       }
     }
+  }
 
+  dynamic "secret_manager_config" {
+    for_each = try(var.secretManagerConfig, null) != null ? [var.secretManagerConfig] : []
+
+    content {
+      enabled = try(secret_manager_config.value.enabled, null)
+    }
   }
 
   dynamic "security_posture_config" {
@@ -940,4 +958,11 @@ resource "google_container_cluster" "cluster" {
       workload_pool = try(workload_identity_config.value.workloadPool, null)
     }
   }
+
+  lifecycle {
+    ignore_changes = [
+      node_config
+    ]
+  }
+
 }

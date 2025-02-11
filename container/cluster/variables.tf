@@ -159,6 +159,31 @@ variable "binaryAuthorization" {
   default = null
 }
 
+variable "controlPlaneEndpointsConfig" {
+  description = ""
+  type = object({
+    dnsEndpointConfig = optional(object({
+      allowExternalTraffic = optional(bool, null)
+      endpoint             = optional(string, null) # output
+    }), null)
+    ipEndpointsConfig = optional(object({ # output ? - not in terraform provider 6.19.0
+      authorizedNetworksConfig = optional(object({
+        privateEndpointEnforcementEnabled = optional(bool, null)
+      }), null)
+      enablePublicEndpoint      = optional(bool, null)
+      enabled                   = optional(bool, null)
+      globalAccess              = optional(bool, null)
+      privateEndpoint           = optional(string, null)
+      privateEndpointSubnetwork = optional(string, null)
+      publicEndpoint            = optional(string, null)
+
+    }), null)
+  })
+  default = null
+}
+
+
+
 variable "clusterIpv4Cidr" {
   description = "The IP address range of the Kubernetes pods in this cluster in CIDR notation"
   type        = string
@@ -1050,6 +1075,14 @@ variable "satisfiesPzi" {
   description = ""
   type        = bool
   default     = null
+}
+
+variable "secretManagerConfig" {
+  description = ""
+  type = object({
+    enabled = optional(bool, null)
+  })
+  default = null
 }
 
 variable "securityPostureConfig" {
