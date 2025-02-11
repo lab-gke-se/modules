@@ -55,7 +55,7 @@ resource "google_pubsub_subscription" "subscription" {
   }
 
   dynamic "cloud_storage_config" {
-    for_each = try(var.cloudStorageConfig, null) != null ? [var.cloudStorageConfig, null] : []
+    for_each = try(var.cloudStorageConfig, null) != null ? [var.cloudStorageConfig] : []
 
     content {
       bucket                   = try(cloud_storage_config.value.bucket, null)
@@ -104,14 +104,14 @@ resource "google_pubsub_subscription" "subscription" {
     }
   }
 
-  dynamic "analytics_hub_subscription_info" {
-    for_each = try(var.analyticsHubSubscriptionInfo, null) != null ? [var.analyticsHubSubscriptionInfo] : []
+  # Not supported by terraform?
+  # dynamic "analytics_hub_subscription_info" {
+  #   for_each = try(var.analyticsHubSubscriptionInfo, null) != null ? [var.analyticsHubSubscriptionInfo] : []
 
-    content {
-      listing      = try(analytics_hub_subscription_info.value.listing, null)
-      subscription = try(analytics_hub_subscription_info.value.subscription, null)
-    }
-
-  }
+  #   content {
+  #     listing      = try(analytics_hub_subscription_info.value.listing, null)
+  #     subscription = try(analytics_hub_subscription_info.value.subscription, null)
+  #   }
+  # }
 
 }
